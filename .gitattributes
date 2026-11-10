@@ -1,0 +1,16 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.npz binary
+*.bin binary
+*.dll binary
+*.png binary
+*.ico binary
+*.cube -text
+src/gr4-data/** -text
+src/gr4-core/** -text
+src/data/** -text
+src/native-data/** -text
+src/builtin-luts/** -text
+src/gr4_core.c -text

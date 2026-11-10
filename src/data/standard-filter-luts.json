@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "data_sha256": "4798e7a5d6dd100778c88b324f1843f931c257c7ea8033ec0b3b746d685e8972",
+  "look_ids": [
+    "Natural",
+    "Bright",
+    "Portrait",
+    "Landscape",
+    "MIYABI",
+    "Monochrome",
+    "Muted",
+    "Reversal",
+    "BleachBypass",
+    "Radiant",
+    "Flat",
+    "SATOBI",
+    "HARUBENI",
+    "KATEN",
+    "KYUSHU",
+    "FUYUNO",
+    "GOLD"
+  ],
+  "grid_size": 33,
+  "source": "DCU 5.10.2.2 RGB entry with verified K-1 bank",
+  "sampled_approximation": true,
+  "complete_native_engine": false
+}

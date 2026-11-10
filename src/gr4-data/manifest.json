@@ -1,0 +1,13 @@
+{
+  "firmware_included": false,
+  "license": "LICENSE-GRKit.txt",
+  "schema": 1,
+  "source": "Original-derived mode tables and GRKit linear-input/control algorithms",
+  "full_original_engine": false,
+  "version": "R3",
+  "profiles_sha256": "cf88c9443ef0775e2778a3a783425af217cf0e63d7aac94e248e3863ccd49e64",
+  "native_core_sha256": "72b6d0d04c4cadc9f55e24c6afb6ccc13be3022f23bb8eca09c13dc9a1c47338",
+  "native_core_cpu": "x86_64 baseline, strict double, no fast-math, no FMA",
+  "opencl_source_sha256": "080b83bd953d47253ac3fba5a5e09c22e9ce467ff09def60da3c406f684ed13c",
+  "controls_sha256": "f43814552be44ad50b15fca6b1e3148e1b4b29c01e360287f69c1d085e11865f"
+}

@@ -1,0 +1,14 @@
+{
+  "input_type": "Canon CR2",
+  "dimensions": [
+    5796,
+    3870
+  ],
+  "decode_count": 1,
+  "routes": [
+    "linear",
+    "srgb"
+  ],
+  "seconds": 7.223022300051525,
+  "manual_retained": true
+}

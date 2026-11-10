@@ -1,0 +1,18 @@
+{
+  "compiler": "Zig 0.17.1",
+  "target": "x86_64-windows-gnu",
+  "cpu": "x86_64",
+  "flags": [
+    "-O2",
+    "-ffp-contract=off",
+    "-fno-fast-math",
+    "-g0",
+    "-shared"
+  ],
+  "source_sha256": "d1230711a3912d59b96f5d48b1178bc9e365a191344797e584020a0dbbe9a692",
+  "dll_sha256": "72b6d0d04c4cadc9f55e24c6afb6ccc13be3022f23bb8eca09c13dc9a1c47338",
+  "gpu_required": false,
+  "original_camera_engine": false,
+  "operation": "R3 colour model with explicit input domains, original-derived dynamic tone and saturation controls",
+  "license": "LICENSE-GRKit.txt and MinGW-COPYING.txt"
+}

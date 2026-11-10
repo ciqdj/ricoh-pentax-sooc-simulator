@@ -1,0 +1,7 @@
+numpy==2.5.4
+Pillow==13.0.0
+rawpy==0.28.0
+tifffile==2026.10.15
+imagecodecs==2026.10.10
+pefile==2024.8.26
+PyInstaller==6.22.3

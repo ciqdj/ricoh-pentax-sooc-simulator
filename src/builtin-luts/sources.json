@@ -1,0 +1,260 @@
+{
+  "brands": {
+    "c6f979c46ed354e085f942c4572474d3": {
+      "repository": "https://github.com/abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "label": "Fuji · 第三方模拟",
+      "license": "CC BY-NC-SA 4.0",
+      "input_note": "sRGB 数据；主风格按作者要求使用线性对比度输入。Provia 转换组要求已应用 Provia 的成片。",
+      "readme": "c6f979c46ed354e085f942c4572474d3-README.md"
+    },
+    "ac9852d5ad445872833a5ed2df16e961": {
+      "repository": "https://github.com/YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "label": "经典胶片 · 精选 20",
+      "license": "MIT repository notice; upstream rights disclaimer retained",
+      "input_note": "第三方胶片风格 CUBE；保留上游原始数值，未声称与真实胶片或机内处理一致。",
+      "readme": "ac9852d5ad445872833a5ed2df16e961-README.md"
+    }
+  },
+  "files": [
+    {
+      "key": "custom:02a009dac1f251ce847e47951db6574e",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/astia_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/astia_sRGB.cube"
+    },
+    {
+      "key": "custom:c4debf760f4c5c87960f581f6c942ae7",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/bleach bypass_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/bleach%20bypass_sRGB.cube"
+    },
+    {
+      "key": "custom:aa12a40f362c5236a2ce6d507ea7befb",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/classic chrome_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/classic%20chrome_sRGB.cube"
+    },
+    {
+      "key": "custom:88eff0675ba75e9a85eaa3287b5398a7",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/classic neg_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/classic%20neg_sRGB.cube"
+    },
+    {
+      "key": "custom:cc67ae7f34735cd3864015e061e0ed85",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/eterna_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/eterna_sRGB.cube"
+    },
+    {
+      "key": "custom:59c36d7c720c5997b5f631bdbd17afe4",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/nostalgic neg_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/nostalgic%20neg_sRGB.cube"
+    },
+    {
+      "key": "custom:249ba944485356bcb11223b6c2eb6561",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/pro neg hi_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/pro%20neg%20hi_sRGB.cube"
+    },
+    {
+      "key": "custom:67bbadda004f50d6bae4e393e02f35e4",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/pro neg std_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/pro%20neg%20std_sRGB.cube"
+    },
+    {
+      "key": "custom:1859bbd9b8945117b887d78711f30a4f",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/provia_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/provia_sRGB.cube"
+    },
+    {
+      "key": "custom:447ea402bfa250088ffba54e9246c743",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/reala ace_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/reala%20ace_sRGB.cube"
+    },
+    {
+      "key": "custom:432c6d352f335b57b06737eb7dab5dba",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "cube lut/velvia_sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/cube%20lut/velvia_sRGB.cube"
+    },
+    {
+      "key": "custom:589dbb31ddb856e8a90a3f62c0fa3f51",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "provia conversion luts/Provia to Bleach Bypass sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/provia%20conversion%20luts/Provia%20to%20Bleach%20Bypass%20sRGB.cube"
+    },
+    {
+      "key": "custom:81b6be40e0f7514b9dbf172e3b6e1122",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "provia conversion luts/Provia to Classic Neg sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/provia%20conversion%20luts/Provia%20to%20Classic%20Neg%20sRGB.cube"
+    },
+    {
+      "key": "custom:4c46560c4797501e9604c6be118b887b",
+      "repository": "abpy/FujifilmCameraProfiles",
+      "commit": "b5a1f16abfb2759b337c83d69d9dc49470e7e518",
+      "path": "provia conversion luts/Provia to Nostalgic Neg sRGB.cube",
+      "url": "https://raw.githubusercontent.com/abpy/FujifilmCameraProfiles/b5a1f16abfb2759b337c83d69d9dc49470e7e518/provia%20conversion%20luts/Provia%20to%20Nostalgic%20Neg%20sRGB.cube"
+    },
+    {
+      "key": "custom:fb9f12d8a5345ecfb56e65dcfd89865f",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/bw/fuji_neopan_acros_100.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/bw/fuji_neopan_acros_100.cube"
+    },
+    {
+      "key": "custom:2ca717490cb85ee984193a1a66c9e622",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/bw/ilford_hp_5_plus_400.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/bw/ilford_hp_5_plus_400.cube"
+    },
+    {
+      "key": "custom:8326d54d96a9506b929ccb5908d1257d",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/bw/kodak_t-max_400.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/bw/kodak_t-max_400.cube"
+    },
+    {
+      "key": "custom:d9962d7ef68a567bb290d17277255b0d",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/bw/kodak_tri-x_400.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/bw/kodak_tri-x_400.cube"
+    },
+    {
+      "key": "custom:a03eac02249c5d02a98d36c1ae4d0828",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/colorslide/fuji_astia_100f.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/colorslide/fuji_astia_100f.cube"
+    },
+    {
+      "key": "custom:f75bead8568353ba8e23671edf0f6a3a",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/colorslide/fuji_provia_100f.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/colorslide/fuji_provia_100f.cube"
+    },
+    {
+      "key": "custom:54977d6a00ed5162aee9beef87a5afd0",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/colorslide/fuji_velvia_50.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/colorslide/fuji_velvia_50.cube"
+    },
+    {
+      "key": "custom:7fa8bca5ad8054ab8c57e02de44f480c",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/colorslide/kodak_ektachrome_100_vs.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/colorslide/kodak_ektachrome_100_vs.cube"
+    },
+    {
+      "key": "custom:0382936df0d45f9d886a341a83057af0",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/colorslide/kodak_kodachrome_64.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/colorslide/kodak_kodachrome_64.cube"
+    },
+    {
+      "key": "custom:03a21ac891e2590f95339d94d55e5bb5",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/instant_pro/fuji_fp-100c.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/instant_pro/fuji_fp-100c.cube"
+    },
+    {
+      "key": "custom:762c8911780d57f49c5218e22788338e",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/instant_pro/polaroid_669.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/instant_pro/polaroid_669.cube"
+    },
+    {
+      "key": "custom:1d0b68f02c4d5f359d7dbe37c497e42b",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/instant_pro/polaroid_690.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/instant_pro/polaroid_690.cube"
+    },
+    {
+      "key": "custom:6aa6905adaf5550e8893e22389902e7b",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_color/agfa_vista_200.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_color/agfa_vista_200.cube"
+    },
+    {
+      "key": "custom:d29d59d1e4625eacb72d596196524922",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_color/kodak_ektar_100.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_color/kodak_ektar_100.cube"
+    },
+    {
+      "key": "custom:a6f466c36cda543cad8bddbac2970cf6",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_color/lomography_redscale_100.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_color/lomography_redscale_100.cube"
+    },
+    {
+      "key": "custom:9a68a6879cdf563e9e95f4e19fbb94bb",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_new/fuji_400h.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_new/fuji_400h.cube"
+    },
+    {
+      "key": "custom:24bed71de5d75432bafa2e2fa2fab7e0",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_new/kodak_portra_160.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_new/kodak_portra_160.cube"
+    },
+    {
+      "key": "custom:9cb10a5c0a605a64b23dc66b9ded6eff",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_new/kodak_portra_400.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_new/kodak_portra_400.cube"
+    },
+    {
+      "key": "custom:e87bdc5314785b7fbbff9cf920dc993e",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_new/kodak_portra_800.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_new/kodak_portra_800.cube"
+    },
+    {
+      "key": "custom:d62b7b2d70255196b4636a2be455e7f7",
+      "repository": "YahiaAngelo/Film-Luts",
+      "commit": "af957b631a304e6be94778b96cb3395de3438e9f",
+      "path": "luts/negative_old/fuji_superia_400.cube",
+      "url": "https://raw.githubusercontent.com/YahiaAngelo/Film-Luts/af957b631a304e6be94778b96cb3395de3438e9f/luts/negative_old/fuji_superia_400.cube"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "upstream": "https://www.libraw.org/data/LibRaw-0.22.3-Win64.zip",
+  "upstream_archive_sha256": "4e2213a0b10e32199a30b9114a61376cdb40f94df861262b4a6dca659701276b",
+  "libraw_version": "0.22.3",
+  "source_changes": false,
+  "compiler": "MSVC 14.44.35207 x64",
+  "build_command": "nmake /f Makefile.msvc bin\\libraw.dll COPT_OPT=/openmp",
+  "fixed_dll_sha256": "d03d83d42fe116e1ebcb39ab4ea9b17072ac251da41b5817e6882201c6b71f3d",
+  "rawpy_version": "0.28.0",
+  "extension_change": "DLL import raw_r.dll renamed raw_f.dll; no image code changed",
+  "scope": "RAF only; other formats keep the original full-feature rawpy decoder",
+  "dependencies": [
+    "msvcp140.dll",
+    "vcomp140.dll",
+    "ws2_32.dll",
+    "kernel32.dll",
+    "vcruntime140.dll",
+    "vcruntime140_1.dll",
+    "api-ms-win-crt-runtime-l1-1-0.dll",
+    "api-ms-win-crt-stdio-l1-1-0.dll",
+    "api-ms-win-crt-heap-l1-1-0.dll",
+    "api-ms-win-crt-filesystem-l1-1-0.dll",
+    "api-ms-win-crt-math-l1-1-0.dll",
+    "api-ms-win-crt-string-l1-1-0.dll",
+    "api-ms-win-crt-convert-l1-1-0.dll",
+    "api-ms-win-crt-utility-l1-1-0.dll",
+    "api-ms-win-crt-time-l1-1-0.dll"
+  ]
+}

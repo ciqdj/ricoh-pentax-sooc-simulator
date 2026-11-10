@@ -1,0 +1,14 @@
+{
+  "state": "completed",
+  "model": "nafnet",
+  "mode": "auto",
+  "name": "模型预热",
+  "task_id": "ai-prewarm",
+  "stage": "模型已就绪",
+  "elapsed": 46.203000000095926,
+  "eta_seconds": null,
+  "backend": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "phase": "validating_device",
+  "seconds_per_tile": 0.3757469999836758,
+  "second_prepare_seconds": 0.015999999945051968
+}

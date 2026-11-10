@@ -1,0 +1,6 @@
+Bundled third-party LUT library. Original CUBE bytes are unchanged.
+Fuji profiles: abpy/FujifilmCameraProfiles, CC BY-NC-SA 4.0.
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+Attribution, noncommercial use and share-alike terms apply to those LUT assets.
+Film-Luts: YahiaAngelo/Film-Luts, MIT repository notice with upstream rights disclaimer; see original README and LICENSE.
+Names identify third-party simulations, not Fujifilm endorsement or a complete camera engine.

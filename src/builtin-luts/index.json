@@ -1,0 +1,766 @@
+{
+  "version": 1,
+  "brands": [
+    {
+      "id": "c6f979c46ed354e085f942c4572474d3",
+      "name": "Fuji · 第三方模拟"
+    },
+    {
+      "id": "ac9852d5ad445872833a5ed2df16e961",
+      "name": "经典胶片 · 精选 20"
+    }
+  ],
+  "categories": [
+    {
+      "id": "96e237389ef2575ab1051fb57f4d583e",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "name": "富士风格"
+    },
+    {
+      "id": "9a817bbc5fc15c1a9c159f3978545e59",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "name": "Provia 成片转换"
+    },
+    {
+      "id": "2bf2faf4de8c5b18af38503dfc94e294",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "name": "反转片"
+    },
+    {
+      "id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "name": "彩色负片"
+    },
+    {
+      "id": "0eeab851e9cf5aef88fef49649c1da1c",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "name": "黑白胶片"
+    },
+    {
+      "id": "cd79865d8e3055d7ad574d6195db13d8",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "name": "即时成像"
+    },
+    {
+      "id": "112b1456009f54e1b5341b2bb67ac045",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "name": "特色色调"
+    }
+  ],
+  "luts": [
+    {
+      "id": "02a009dac1f251ce847e47951db6574e",
+      "key": "custom:02a009dac1f251ce847e47951db6574e",
+      "name": "ASTIA",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "84d884693ca556682bebcbcbdc9c5302af331010498289317c8ad2c114fd2f9e",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "c4debf760f4c5c87960f581f6c942ae7",
+      "key": "custom:c4debf760f4c5c87960f581f6c942ae7",
+      "name": "BLEACH BYPASS",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "0415a60d9947392e8e9884d32df5e9fce00658253ad9d560f5c4d4646df7c01e",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "aa12a40f362c5236a2ce6d507ea7befb",
+      "key": "custom:aa12a40f362c5236a2ce6d507ea7befb",
+      "name": "CLASSIC CHROME",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "4568770fd3a89d0c49d38381e130d419b85b39e5b0959a43019a36d25b5be30d",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "88eff0675ba75e9a85eaa3287b5398a7",
+      "key": "custom:88eff0675ba75e9a85eaa3287b5398a7",
+      "name": "CLASSIC NEG",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "de8b59d1017ceef23ba778569c67db5dcb66ce571d0272d7ddffdf7b34bcc8f1",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "cc67ae7f34735cd3864015e061e0ed85",
+      "key": "custom:cc67ae7f34735cd3864015e061e0ed85",
+      "name": "ETERNA",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "1847d5560f929737bd8872d9b0971bb2b9836e60c0bbf8bf9fe45f7954019e4d",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "59c36d7c720c5997b5f631bdbd17afe4",
+      "key": "custom:59c36d7c720c5997b5f631bdbd17afe4",
+      "name": "NOSTALGIC NEG",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "329c903aea19b33148229b1385c8a7509e61cae485d97ae70811182b76da11b1",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "249ba944485356bcb11223b6c2eb6561",
+      "key": "custom:249ba944485356bcb11223b6c2eb6561",
+      "name": "PRO NEG HI",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "2ddec4a6a436d1539e36f7f93d7a9d40caa69b8d3a8c540733a0e55ba700cda6",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "67bbadda004f50d6bae4e393e02f35e4",
+      "key": "custom:67bbadda004f50d6bae4e393e02f35e4",
+      "name": "PRO NEG STD",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "9dbdd7208b2389c101206ca9095035e5b12afd09bd257ed262f63bbf7791f235",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "1859bbd9b8945117b887d78711f30a4f",
+      "key": "custom:1859bbd9b8945117b887d78711f30a4f",
+      "name": "PROVIA",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "5aecd2df2999ee6912dc30ba034f6016583839b9a87618632424069b8de3cab8",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "447ea402bfa250088ffba54e9246c743",
+      "key": "custom:447ea402bfa250088ffba54e9246c743",
+      "name": "REALA ACE",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "8555ccd47f9130642f1c1b269c7c35d2d2fa798bbd19ce97a4b912c113dd71ea",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "432c6d352f335b57b06737eb7dab5dba",
+      "key": "custom:432c6d352f335b57b06737eb7dab5dba",
+      "name": "VELVIA",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "96e237389ef2575ab1051fb57f4d583e",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "e576e9b9013d5e78035c1dfe8b9fb9236cac95d2fcd3824682ea4a45710bf4a9",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "589dbb31ddb856e8a90a3f62c0fa3f51",
+      "key": "custom:589dbb31ddb856e8a90a3f62c0fa3f51",
+      "name": "Provia to Bleach Bypass",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "9a817bbc5fc15c1a9c159f3978545e59",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "8425966e8c1e892e78343125777fde5a3a633e44fb15955ec52153a32b93ed13",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "81b6be40e0f7514b9dbf172e3b6e1122",
+      "key": "custom:81b6be40e0f7514b9dbf172e3b6e1122",
+      "name": "Provia to Classic Neg",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "9a817bbc5fc15c1a9c159f3978545e59",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "c8d7b46bb781a968b47da2e95e9cebdc4c4f59eaecd718c1e3fc2be9161de233",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "4c46560c4797501e9604c6be118b887b",
+      "key": "custom:4c46560c4797501e9604c6be118b887b",
+      "name": "Provia to Nostalgic Neg",
+      "brand_id": "c6f979c46ed354e085f942c4572474d3",
+      "category_id": "9a817bbc5fc15c1a9c159f3978545e59",
+      "title": "",
+      "kind": "3D",
+      "size": 32,
+      "sha256": "ba5f4f00eaa990d4bd7d7b9f022c66bff5d6f407d29895c7c2a0bd1c77cc9dcf",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "f75bead8568353ba8e23671edf0f6a3a",
+      "key": "custom:f75bead8568353ba8e23671edf0f6a3a",
+      "name": "FUJIFILM Provia 100F",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "2bf2faf4de8c5b18af38503dfc94e294",
+      "title": "fuji_provia_100f",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "96952f28c5f407d9978cd8dd015140bc4b1224ef87f0c49151f1105ee1740d2d",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "54977d6a00ed5162aee9beef87a5afd0",
+      "key": "custom:54977d6a00ed5162aee9beef87a5afd0",
+      "name": "FUJIFILM Velvia 50",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "2bf2faf4de8c5b18af38503dfc94e294",
+      "title": "fuji_velvia_50",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "67e5b4ebedfc94e36980df27f0d0d5b4ff1ea3c4ad5ea41d7cc43da5d9102086",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "a03eac02249c5d02a98d36c1ae4d0828",
+      "key": "custom:a03eac02249c5d02a98d36c1ae4d0828",
+      "name": "FUJIFILM Astia 100F",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "2bf2faf4de8c5b18af38503dfc94e294",
+      "title": "fuji_astia_100f",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "16c5e6fd1fad9cc0e0b0c55e0f5fc57aba220f2d73fb4bfdf70977a9205087bf",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "0382936df0d45f9d886a341a83057af0",
+      "key": "custom:0382936df0d45f9d886a341a83057af0",
+      "name": "Kodak Kodachrome 64",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "2bf2faf4de8c5b18af38503dfc94e294",
+      "title": "kodak_kodachrome_64",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "6fce987295dac264a689a8ef1b1b3a407f26ffcb3f6d81a356ebc5d9c565d0b4",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "7fa8bca5ad8054ab8c57e02de44f480c",
+      "key": "custom:7fa8bca5ad8054ab8c57e02de44f480c",
+      "name": "Kodak Ektachrome 100VS",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "2bf2faf4de8c5b18af38503dfc94e294",
+      "title": "kodak_ektachrome_100_vs",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "785d2afdc6e1d8afcaa490fae156d11990c876b01fea2f38e00ed85b48beefca",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "24bed71de5d75432bafa2e2fa2fab7e0",
+      "key": "custom:24bed71de5d75432bafa2e2fa2fab7e0",
+      "name": "Kodak Portra 160",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "title": "kodak_portra_160",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "dc7a832737c22ca0a2056cc244047e0e08872fa4143bd9c4bb0f60fc89748120",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "9cb10a5c0a605a64b23dc66b9ded6eff",
+      "key": "custom:9cb10a5c0a605a64b23dc66b9ded6eff",
+      "name": "Kodak Portra 400",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "title": "kodak_portra_400",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "d370833399f38de59f42386757b18832c68d10a8877c89ad7428e3791ad266d3",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "e87bdc5314785b7fbbff9cf920dc993e",
+      "key": "custom:e87bdc5314785b7fbbff9cf920dc993e",
+      "name": "Kodak Portra 800",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "title": "kodak_portra_800",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "12372330c6dcf1f43475c700515be7817bbc89c7e5a5aa26ff8e8065e19e96aa",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "d29d59d1e4625eacb72d596196524922",
+      "key": "custom:d29d59d1e4625eacb72d596196524922",
+      "name": "Kodak Ektar 100",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "title": "kodak_ektar_100",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "f6022dcb20c06a73ca303fe35444038edb77fa45fa5a591728fdaa05fecf06d8",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "9a68a6879cdf563e9e95f4e19fbb94bb",
+      "key": "custom:9a68a6879cdf563e9e95f4e19fbb94bb",
+      "name": "FUJIFILM Pro 400H",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "title": "fuji_400h",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "cb5a6d6aaa57245385c73e0e6d63bb44210081ea8dff009bbbdefe6cdb16d2e3",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "d62b7b2d70255196b4636a2be455e7f7",
+      "key": "custom:d62b7b2d70255196b4636a2be455e7f7",
+      "name": "FUJIFILM Superia 400",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "title": "fuji_superia_400",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "9806b1a58b55740b6293c8b8ecfc8dadc90a405d20341cb4c1e67e9b962b4045",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "6aa6905adaf5550e8893e22389902e7b",
+      "key": "custom:6aa6905adaf5550e8893e22389902e7b",
+      "name": "Agfa Vista 200",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "3406a19f7c42557aafdb4175dc5bbb99",
+      "title": "agfa_vista_200",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "b65848b3e217bbb57ca998f0460fe0d6c631228872ad49574d85e07ffeb3548e",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "d9962d7ef68a567bb290d17277255b0d",
+      "key": "custom:d9962d7ef68a567bb290d17277255b0d",
+      "name": "Kodak Tri-X 400",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "0eeab851e9cf5aef88fef49649c1da1c",
+      "title": "kodak_tri-x_400",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "6687e133fac57f248c13c800e5a8df63f00caad84a16035dc9b064c2e485f034",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "8326d54d96a9506b929ccb5908d1257d",
+      "key": "custom:8326d54d96a9506b929ccb5908d1257d",
+      "name": "Kodak T-Max 400",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "0eeab851e9cf5aef88fef49649c1da1c",
+      "title": "kodak_t-max_400",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "3d5932c8bb4f277043cc25439de7e0c3a694df7a2b67ddaa411a3bc025af7c15",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "2ca717490cb85ee984193a1a66c9e622",
+      "key": "custom:2ca717490cb85ee984193a1a66c9e622",
+      "name": "Ilford HP5 Plus 400",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "0eeab851e9cf5aef88fef49649c1da1c",
+      "title": "ilford_hp_5_plus_400",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "f56969284f1259d57c6ec05d0203a49c449eae494ed54b5983a59af9a0979d0c",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "fb9f12d8a5345ecfb56e65dcfd89865f",
+      "key": "custom:fb9f12d8a5345ecfb56e65dcfd89865f",
+      "name": "FUJIFILM Neopan Acros 100",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "0eeab851e9cf5aef88fef49649c1da1c",
+      "title": "fuji_neopan_acros_100",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "a2bad0a9abd1334695a5d63c4da5ba8ca0bc6ad2fe9f60719441095b1fd2509b",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "03a21ac891e2590f95339d94d55e5bb5",
+      "key": "custom:03a21ac891e2590f95339d94d55e5bb5",
+      "name": "FUJIFILM FP-100C",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "cd79865d8e3055d7ad574d6195db13d8",
+      "title": "fuji_fp-100c",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "00d578233365491b26ba6757926b7910e2b7f0e0149842bce07fec73e11d803d",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "762c8911780d57f49c5218e22788338e",
+      "key": "custom:762c8911780d57f49c5218e22788338e",
+      "name": "Polaroid 669",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "cd79865d8e3055d7ad574d6195db13d8",
+      "title": "polaroid_669",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "fa880680cf2af2f92b6469c01396d3422e2ecc37c6357031d7f7f591d29cfade",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "1d0b68f02c4d5f359d7dbe37c497e42b",
+      "key": "custom:1d0b68f02c4d5f359d7dbe37c497e42b",
+      "name": "Polaroid 690",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "cd79865d8e3055d7ad574d6195db13d8",
+      "title": "polaroid_690",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "6d4db4889b34590c4e87ee54eed8ec34b8736450242d34b9d996bce2e2ea474c",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "a6f466c36cda543cad8bddbac2970cf6",
+      "key": "custom:a6f466c36cda543cad8bddbac2970cf6",
+      "name": "Lomography Redscale 100",
+      "brand_id": "ac9852d5ad445872833a5ed2df16e961",
+      "category_id": "112b1456009f54e1b5341b2bb67ac045",
+      "title": "lomography_redscale_100",
+      "kind": "3D",
+      "size": 13,
+      "sha256": "7d5709ce04bc32e9321da0f35b65183f3b333a1eca9aecb91b92141a227eb5b3",
+      "domain_min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "domain_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ]
+}
