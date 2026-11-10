@@ -8,7 +8,7 @@
 
 嫌自己的照片偏色、发灰、太寡淡，就试试宾得四季、反转片，或者换到理光 GR IV 的交叉处理。跨品牌输入适配、原厂参数调用和工作台代码都已开源，想研究宾得色彩的朋友可以接着往下拆。
 
-[下载 Windows 版](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/latest) · [处理流程与代码入口](docs/PIPELINE.md) · [源码运行与打包](docs/BUILD.md)
+[下载 Windows 版](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/latest) · [处理流程与代码入口](docs/PIPELINE.md) · [源码运行与打包](docs/BUILD.md) · [免责声明](DISCLAIMER.md)
 
 [宾得滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/PENTAX-Filters-3.5.11.zip) · [理光 GR IV 滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/RICOH-GR-IV-Filters-3.5.11.zip) · [原厂拆解数据](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/SOOC-Recovered-Color-Data-3.5.11.zip) · [文件清单与导入方法](docs/FILTERS.md)
 
