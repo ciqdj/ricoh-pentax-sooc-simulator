@@ -12,11 +12,11 @@ py -3.12 -m venv .venv
 Git 仓库包含应用代码、参数资源、LUT 与许可证。较大的 AI 模型、运行库和视频工具在公开 Windows 发布包中。下载 EXE 后，从中提取运行资源：
 
 ```powershell
-.venv\Scripts\python tools\import_runtime.py "D:\Downloads\RICOH-PENTAX-SOOC-Simulator-3.5.12.exe"
+.venv\Scripts\python tools\import_runtime.py "D:\Downloads\RICOH-PENTAX-SOOC-Simulator-3.5.12-Standalone.exe"
 .venv\Scripts\python src\workbench_entry.py
 ```
 
-提取器只将白名单中的运行资源写入 `src`。3.5.12 公开版和源码模式通过本机安装的 64 位 DCU 5 运行宾得处理，要求文件版本 5.10.2.2。安装原厂软件后可使用官方更新器。版本校验在 `src/native_host.py` 中。[原厂更新器](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html)
+提取器只将白名单中的运行资源写入 `src`。从 3.5.12 免安装单文件版导入时，会一并取得宾得处理所需的运行文件。源码也可以调用本机安装的 64 位 DCU 5，要求文件版本 5.10.2.2。版本校验在 `src/native_host.py` 中。[原厂更新器](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html)
 
 ## 运行针对本次改动的检查
 
