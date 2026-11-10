@@ -2,8 +2,7 @@
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import json, os, queue, shutil, sys, threading, traceback
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, simpledialog
+from ui_language import tk, ttk, filedialog, messagebox, simpledialog
 import numpy as np
 from PIL import Image, ImageTk
 from ui_controls import FineSlider
@@ -89,7 +88,7 @@ class App:
         style.map('Accent.TButton',background=[('active','#227e64'),('disabled','#869b94')])
         style.configure('Title.TLabel',font=('Microsoft YaHei UI',18,'bold'))
         style.configure('Hint.TLabel',foreground='#5e6863',font=('Microsoft YaHei UI',9))
-        header=ttk.Frame(root,padding=(18,12));header.pack(fill='x')
+        header=ttk.Frame(root,padding=(18,12));header.pack(fill='x');self.header=header
         brand=ttk.Frame(header);brand.pack(side='left',padx=(0,14))
         ttk.Label(brand,text='RICOH & PENTAX',style='Title.TLabel').pack(anchor='w')
         ttk.Label(brand,text='SOOC Simulator  '+VERSION,style='Hint.TLabel').pack(anchor='w')
@@ -120,6 +119,7 @@ class App:
         self.file_list.bind('<<ListboxSelect>>',self.file_selected)
         ttk.Label(left,text='预设 · 缩略图为标准效果').grid(row=2,column=0,sticky='w')
         groups=ttk.Combobox(left,textvariable=self.group,values=['彩色','黑白','创意组合','基调曲线','我的预设'],state='readonly')
+        self.group_combo=groups
         groups.grid(row=3,column=0,sticky='ew',pady=6);groups.bind('<<ComboboxSelected>>',lambda e:self.build_cards())
         gridbox=ttk.Frame(left);gridbox.grid(row=4,column=0,sticky='nsew')
         self.preset_canvas=tk.Canvas(gridbox,width=250,bg='#f4f5f3',highlightthickness=0)
@@ -152,7 +152,7 @@ class App:
         FineSlider(right,variable=self.amount,from_=0,to=200,resolution=1,default=100,command=lambda v:self.settings_changed()).pack(fill='x',pady=3)
         amounts=ttk.Frame(right);amounts.pack(fill='x')
         for text,value in [('不加',0),('轻柔',50),('标准',100),('加强',150)]:
-            ttk.Button(amounts,text=text,width=5,command=lambda v=value:self.set_amount(v)).pack(side='left',padx=(0,3))
+            ttk.Button(amounts,text=text,width=0,command=lambda v=value:self.set_amount(v)).pack(side='left',padx=(0,3))
         ttk.Label(right,textvariable=self.ev_text).pack(anchor='w')
         FineSlider(right,variable=self.exposure,from_=-3,to=3,resolution=.01,default=0,command=lambda v:self.settings_changed()).pack(fill='x')
         pr=ttk.Frame(right);pr.pack(fill='x',pady=(4,12))

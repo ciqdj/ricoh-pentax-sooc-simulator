@@ -6,7 +6,9 @@
 #define _UNICODE
 #endif
 #include <windows.h>
+#include <ctype.h>
 #include <math.h>
+#include <string.h>
 #include <wchar.h>
 #include "launcher_splash.h"
 
@@ -18,6 +20,32 @@ static HBITMAP art_bitmap=NULL;
 static HGDIOBJ art_previous=NULL;
 static int frame_w=ART_W,frame_h=ART_H,phase=SPLASH_PREPARE,progress=0;
 static ULONGLONG started=0,last_pump=0;
+
+int launcher_splash_english(void){
+    static int english=-1;
+    if(english>=0)return english;
+    english=0;
+    wchar_t path[32768];
+    const wchar_t suffix[]=L"\\DCU5DataTransfer\\language.json";
+    DWORD count=GetEnvironmentVariableW(L"APPDATA",path,32768);
+    if(!count || count+wcslen(suffix)>=32768)return english;
+    wcscpy(path+count,suffix);
+    HANDLE file=CreateFileW(path,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+        NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+    if(file==INVALID_HANDLE_VALUE)return english;
+    char json[128];
+    DWORD bytes=0;
+    BOOL read=ReadFile(file,json,sizeof(json)-1,&bytes,NULL);
+    CloseHandle(file);
+    if(!read)return english;
+    json[bytes]='\0';
+    const char *key=strstr(json,"\"language\"");
+    const char *value=key?strchr(key,':'):NULL;
+    if(!value)return english;
+    do{value++;}while(isspace((unsigned char)*value));
+    english=strncmp(value,"\"en\"",4)==0;
+    return english;
+}
 
 static int px(int value,int width){return MulDiv(value,width,ART_W);}
 static COLORREF shade(int r,int g,int b){return RGB(r<0?0:r>255?255:r,g<0?0:g>255?255:g,b<0?0:b>255?255:b);}
@@ -79,14 +107,16 @@ static void artwork(HDC dc,DWORD *pixels,int width,int height){
     line(dc,52,49,78,49,2,RGB(209,197,163),width);
     text(dc,L"PHOTO WORKBENCH",91,39,300,25,15,FW_MEDIUM,RGB(178,186,185),width);
     text(dc,L"RICOH & PENTAX",49,94,660,80,57,FW_SEMIBOLD,RGB(244,244,234),width);
-    text(dc,L"SOOC Simulator  3.5.10",54,180,560,30,17,FW_NORMAL,RGB(156,176,171),width);
+    text(dc,L"SOOC Simulator  3.5.12",54,180,560,30,17,FW_NORMAL,RGB(156,176,171),width);
     line(dc,52,311,868,311,1,RGB(49,65,66),width);
 }
 static void loading(HDC dc,int width,int stage,int percent,ULONGLONG tick){
-    wchar_t caption[100];const wchar_t *status=L"正在选择可用的本地空间";
-    if(stage==SPLASH_COPY)status=L"正在准备应用资源";
-    else if(stage==SPLASH_VERIFY)status=L"正在核对资源完整性";
-    else if(stage==SPLASH_START)status=L"正在启动工作台";
+    int english=launcher_splash_english();
+    wchar_t caption[100];
+    const wchar_t *status=english?L"Choosing a writable drive":L"正在选择可用的本地空间";
+    if(stage==SPLASH_COPY)status=english?L"Preparing application files":L"正在准备应用资源";
+    else if(stage==SPLASH_VERIFY)status=english?L"Checking application files":L"正在核对资源完整性";
+    else if(stage==SPLASH_START)status=english?L"Starting the workbench":L"正在启动工作台";
     _snwprintf(caption,100,L"%ls",status);
     text(dc,caption,53,263,660,28,15,FW_NORMAL,RGB(203,213,208),width);
     if(stage==SPLASH_COPY){
@@ -98,7 +128,7 @@ static void loading(HDC dc,int width,int stage,int percent,ULONGLONG tick){
         int start=(int)((tick/6)%976)-160;
         int left=start<0?0:start,right=start+160>816?816:start+160;
         if(right>left)line(dc,52+left,311,52+right,311,2,RGB(218,209,178),width);
-        text(dc,L"请稍候",813,263,75,28,14,FW_NORMAL,RGB(149,168,162),width);
+        text(dc,english?L"Please wait":L"请稍候",785,263,105,28,14,FW_NORMAL,RGB(149,168,162),width);
     }
 }
 static LRESULT CALLBACK splash_proc(HWND hwnd,UINT message,WPARAM wp,LPARAM lp){

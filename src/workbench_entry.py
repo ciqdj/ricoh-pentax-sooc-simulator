@@ -3,7 +3,7 @@ import sys
 
 def main():
     checks={'--verify-latest-ui':'verify_latest_ui','--verify-live-post':'verify_live_post',
-            '--verify-gr4-controls':'verify_gr4_controls',
+            '--verify-gr4-controls':'verify_gr4_controls','--verify-ui-language':'verify_ui_language',
             '--verify-spatial':'verify_spatial_inspection','--verify-native-noise-ui':'verify_native_noise_ui',
             '--verify-fine-controls':'verify_ui_controls','--verify-basic-export':'verify_basic_export',
             '--verify-neural-host':'verify_neural_process','--verify-ai-models':'verify_ai_models',
@@ -68,7 +68,7 @@ def main():
         from app_paths import report_dir
         (report_dir()/'error.log').write_text(traceback.format_exc(),encoding='utf-8')
         if not any(x.startswith('--') for x in sys.argv[1:]):
-            from tkinter import messagebox
+            from ui_language import messagebox
             messagebox.showerror('启动失败','启动失败，详情已写入本机日志。')
         sys.exit(1)
 
@@ -81,6 +81,6 @@ if __name__=='__main__':
         from app_paths import report_dir
         (report_dir()/'error.log').write_text(traceback.format_exc(),encoding='utf-8')
         if not any(x.startswith('--') for x in sys.argv[1:]):
-            from tkinter import messagebox
+            from ui_language import messagebox
             messagebox.showerror('启动失败','启动失败，详情已写入本机日志。')
         sys.exit(1)

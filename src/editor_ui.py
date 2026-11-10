@@ -8,8 +8,7 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 import json, time, queue, threading, re
-import tkinter as tk
-from tkinter import ttk, messagebox
+from ui_language import tk, ttk, messagebox
 from native_controls import NR_CONTROLS
 from native_noise_panel import NativeNoisePanel
 from postprocess import validate as validate_post

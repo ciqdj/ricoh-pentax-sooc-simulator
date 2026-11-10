@@ -2,8 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import queue,threading,time
-import tkinter as tk
-from tkinter import ttk,filedialog,simpledialog,messagebox
+from ui_language import tk, ttk, filedialog, simpledialog, messagebox
 import numpy as np
 from filter_catalog import CUSTOM,catalog,groups,renderer_available
 from native_backend import RenderCancelled
@@ -38,7 +37,7 @@ class CustomLutMixin:
         combo=ttk.Combobox(host,textvariable=self.custom_brand_name,state='readonly',width=15)
         combo.grid(row=0,column=0,sticky='ew');self.custom_brand_combo=combo
         combo.bind('<<ComboboxSelected>>',lambda e:self.custom_brand_selected())
-        manage=ttk.Menubutton(host,text='管理',width=5);manage.grid(row=0,column=1,padx=(5,0))
+        manage=ttk.Menubutton(host,text='管理');manage.grid(row=0,column=1,padx=(5,0))
         menu=tk.Menu(manage,tearoff=False);manage.configure(menu=menu);self.custom_manage=manage
         menu.add_command(label='新建品牌…',command=self.create_custom_brand)
         menu.add_command(label='新建分类…',command=self.create_custom_category)

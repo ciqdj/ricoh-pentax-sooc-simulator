@@ -1,6 +1,5 @@
 """Fine, collapsible manual adjustments; the original renderer stays separate."""
-import tkinter as tk
-from tkinter import ttk
+from ui_language import tk, ttk
 from basic_adjustments import validate as validate_basic
 from color_mixer import COLORS, NAMES, SWATCHES, validate as validate_mixer
 from ui_controls import FineSlider

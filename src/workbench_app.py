@@ -3,8 +3,10 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 import json, math, os, queue, re, sys, threading, time, traceback
-import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog, filedialog
+from ui_language import (
+    tk, ttk, messagebox, simpledialog, filedialog, OPTIONS as LANGUAGE_OPTIONS,
+    current_language, set_language, source_caption,
+)
 from PIL import Image, ImageTk
 import numpy as np
 import app as classic
@@ -35,7 +37,7 @@ from custom_lut_ui import CustomLutMixin
 from preset_thumbnails import PresetThumbnailMixin
 from editor_ui import EditorMixin,EditorNativeNoisePanel,DENOISE_CHOICES
 
-VERSION='3.5.11'
+VERSION='3.5.12'
 classic.VERSION=VERSION
 classic.PRESETS=CONFIG/'native-presets.json'
 GROUPS=PENTAX_GROUPS
@@ -122,11 +124,10 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.user_presets={k:v for k,v in saved.items() if valid_preset(v)}
         self.look.set('')
         self.group.set('全部')
+        self.group_combo.configure(values=[*GROUPS,'我的预设'])
         for w in list(widgets(root)):
-            if isinstance(w,ttk.Combobox) and str(w.cget('textvariable'))==str(self.group):
-                self.group_combo=w;w.configure(values=[*GROUPS,'我的预设'])
             if isinstance(w,ttk.Label):
-                text=str(w.cget('text'))
+                text=str(source_caption(w))
                 if text=='预设 · 缩略图为标准效果':
                     parent=w.master;w.destroy()
                     bar=ttk.Frame(parent);bar.grid(row=2,column=0,sticky='ew')
@@ -139,13 +140,13 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
                 elif text.startswith('已内置视频编码器'):
                     w.destroy()
             if isinstance(w,ttk.Button):
-                text=str(w.cget('text'))
+                text=str(source_caption(w))
                 if text=='导出 LUT / 配置':w.configure(text='导出滤镜文件');self.filter_export_button=w
                 if text=='安装 Lightroom 配置':w.destroy()
         right=self.format_combo.master
         first=right.winfo_children()[0]
         original_right=list(right.pack_slaves())
-        export_index=next(i for i,w in enumerate(original_right) if isinstance(w,ttk.Label) and w.cget('text')=='导出')
+        export_index=next(i for i,w in enumerate(original_right) if isinstance(w,ttk.Label) and source_caption(w)=='导出')
         original_adjust=original_right[:export_index];original_export=original_right[export_index:]
         self.tone_panel=TonePanel(right,self.tone_changed);self.tone_panel.pack(fill='x',pady=(0,10),before=first)
         acceleration=ttk.Frame(right);acceleration.pack(fill='x',pady=(0,10),before=first)
@@ -178,7 +179,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.denoise_state=tk.StringVar(value='')
         ttk.Label(denoise_box,textvariable=self.denoise_state,wraplength=250,style='Hint.TLabel').pack(fill='x',pady=(4,0))
         Tooltip(self.denoise_combo,'AI 在输入照片上降噪并复用结果；DCU 使用宾得原厂显影链。')
-        export_title=next(w for w in right.winfo_children() if isinstance(w,ttk.Label) and w.cget('text')=='导出')
+        export_title=next(w for w in right.winfo_children() if isinstance(w,ttk.Label) and source_caption(w)=='导出')
         self.controls_frame=ttk.LabelFrame(right,text='当前滤镜调整',padding=8)
         self.controls_frame.pack(fill='x',pady=(0,12),before=export_title)
         self.controls_message=tk.StringVar()
@@ -193,8 +194,9 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.cancel_button.pack(fill='x',before=self.progress,pady=(0,5))
         self.build_adjustment_layout(right,original_adjust,original_export,acceleration,denoise_box,balance_frame)
         self.build_editor_toolbar(right)
+        self.build_language_menu()
         self.photo_adjust_widgets=[w for w in widgets(right) if isinstance(w,(ttk.Scale,FineSlider)) or
-            isinstance(w,ttk.Button) and w.cget('text') in ('不加','轻柔','标准','加强','重置调色','保存我的预设')]
+            isinstance(w,ttk.Button) and source_caption(w) in ('不加','轻柔','标准','加强','重置调色','保存我的预设')]
         views=self.canvas.master.winfo_children()[0]
         ttk.Button(views,text='分界线居中',command=self.reset_split).pack(side='right')
         self.zoom_text=tk.StringVar(value='适应窗口');self.viewport=PhotoViewport(self)
@@ -215,6 +217,31 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.ready=True;self.apply_dark();self.update_brand_controls();self.build_cards();self.build_controls();self.settings_changed();self.install_wheel()
         root.protocol('WM_DELETE_WINDOW',self.request_close)
 
+    def build_language_menu(self):
+        labels = {code: name for name, code in LANGUAGE_OPTIONS.items()}
+        self.language_choice = tk.StringVar(master=self.root, value=labels[current_language()])
+        frame = ttk.Frame(self.header)
+        frame.pack(side='right', padx=(0, 8))
+        ttk.Label(frame, text='语言 / Language', style='Hint.TLabel').pack(side='left', padx=(0, 4))
+        self.language_menu = ttk.Combobox(
+            frame, textvariable=self.language_choice, values=tuple(LANGUAGE_OPTIONS),
+            translate_choices=False, state='readonly', width=8,
+        )
+        self.language_menu.pack(side='left')
+        self.language_menu.bind('<<ComboboxSelected>>', self.change_language)
+
+    def change_language(self, _event=None):
+        try:
+            set_language(LANGUAGE_OPTIONS[self.language_choice.get()])
+        except OSError:
+            self.language_choice.set(next(name for name, code in LANGUAGE_OPTIONS.items()
+                                          if code == current_language()))
+            messagebox.showerror('语言', '无法保存语言设置。', parent=self.root)
+            return
+        if self.history_expanded:
+            self.refresh_history_tree(force=True)
+        self.poll_editor_tasks(force=True)
+
     def build_adjustment_layout(self,right,adjust,export,acceleration,denoise,balance):
         # Keep every original parent and callback. Only geometry containers
         # change, so the left presets and centre viewport stay in place.
@@ -223,7 +250,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
             for widget in children:
                 options=dict(widget.pack_info()) if widget.winfo_manager()=='pack' else {'fill':'x'}
                 options.pop('in',None);widget.pack_forget()
-                if isinstance(widget,ttk.Separator) or isinstance(widget,ttk.Label) and str(widget.cget('text')) in ('调色','导出'):continue
+                if isinstance(widget,ttk.Separator) or isinstance(widget,ttk.Label) and str(source_caption(widget)) in ('调色','导出'):continue
                 pane.adopt(widget,**options)
             return pane
         filter_section=section('filter','滤镜',adjust,True)
@@ -488,7 +515,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
             value=tk.IntVar(value=overrides.get(field,defaults[field]));lo,hi=(0,8) if field in ('toning','filter_effect') else (-4,4)
             if field in ('toning','filter_effect'):
                 colours=TONING_COLOURS if field=='toning' else FILTER_COLOURS
-                spin=ttk.Combobox(row,values=colours,width=9,state='readonly')
+                spin=ttk.Combobox(row,values=colours,width=13,state='readonly')
                 spin.current(value.get()) if 0<=value.get()<len(colours) else spin.set('原厂默认')
                 spin.bind('<<ComboboxSelected>>',lambda e,f=field,v=value,w=spin:(v.set(w.current()),self.control_changed(f)))
                 trace=value.trace_add('write',lambda *a,v=value,w=spin:w.current(v.get()) if 0<=v.get()<len(FILTER_COLOURS) else w.set('原厂默认'))

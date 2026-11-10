@@ -18,7 +18,7 @@ def main():
     for folder in ('native','gr4-core','rawpy_f','bin'):
         for path in (src/folder).glob('*'):
             if path.suffix.lower() in ('.dll','.exe','.pyd'):args+=['--add-binary',str(path)+';'+folder]
-    for name in ('native_worker','verify_gr4_controls','imagecodecs._png','imagecodecs._shared_cython',
+    for name in ('native_worker','verify_gr4_controls','verify_ui_language','imagecodecs._png','imagecodecs._shared_cython',
                  'imagecodecs._deflate','imagecodecs._zlib','imagecodecs._imcd','rawpy_f._rawpy'):
         args+=['--hidden-import',name]
     args+=[str(src/'workbench_entry.py')]

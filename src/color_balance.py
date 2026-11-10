@@ -6,8 +6,7 @@ The zero setting bypasses computation and preserves every original pixel.
 """
 import numpy as np
 from PIL import Image,ImageTk
-import tkinter as tk
-from tkinter import ttk
+from ui_language import tk, ttk
 
 LIMIT=35
 

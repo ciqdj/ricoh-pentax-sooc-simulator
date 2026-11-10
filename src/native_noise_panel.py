@@ -1,6 +1,5 @@
 """Expose only the four proven controls of DCU's original development path."""
-import tkinter as tk
-from tkinter import ttk
+from ui_language import tk, ttk
 from native_controls import NR_CONTROLS
 from native_backend import LOOKS
 from filter_catalog import PENTAX

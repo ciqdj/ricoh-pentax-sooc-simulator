@@ -1,7 +1,6 @@
 """Compact native Tk editing controls; no global input capture or UI threads."""
 import math
-import tkinter as tk
-from tkinter import ttk
+from ui_language import tk, ttk, source_caption
 
 
 class Tooltip:
@@ -367,7 +366,7 @@ def fold_existing(widget,title=None,expanded=True):
     if widget.winfo_manager()!='pack':raise ValueError('fold_existing requires a packed widget')
     placement=dict(widget.pack_info())
     if title is None:
-        try:title=str(widget.cget('text'))
+        try:title=str(source_caption(widget))
         except tk.TclError:title=''
     section=CollapsibleSection(widget.master,title,expanded=expanded)
     section.pack(**placement,before=widget)

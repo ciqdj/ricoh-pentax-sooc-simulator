@@ -4,8 +4,7 @@ from copy import deepcopy
 import queue
 import threading
 import time
-import tkinter as tk
-from tkinter import ttk
+from ui_language import tk, ttk
 import numpy as np
 from PIL import Image, ImageTk
 from native_backend import RenderCancelled,LOOKS
@@ -189,7 +188,7 @@ class DenoiseDetail(ttk.Frame):
         # Presence of the initialized state identifies that construction path.
         editor=hasattr(app,'editor_state')
         selector=(ttk.Label(row,textvariable=self.heading,width=9) if editor else
-                  ttk.Combobox(row,textvariable=self.heading,values=('原厂降噪','输入降噪'),state='readonly',width=9))
+                  ttk.Combobox(row,textvariable=self.heading,values=('原厂降噪','输入降噪'),state='readonly',width=12))
         selector.pack(side='left')
         if not editor:selector.bind('<<ComboboxSelected>>',lambda e:self.set_source_mode('input' if self.heading.get()=='输入降噪' else 'native'))
         control=ttk.Combobox(row,textvariable=self.zoom,values=('100%','200%','400%'),state='readonly',width=5)

@@ -1,5 +1,7 @@
 # RICOH & PENTAX SOOC Simulator
 
+[English README](README.en.md) · 简体中文
+
 ![RICOH & PENTAX](src/branding/startup-cover.png)
 
 **让佳能、索尼、尼康、富士的照片也能用上宾得原厂调色引擎。**
@@ -11,6 +13,8 @@
 [下载 Windows 版](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/latest) · [处理流程与代码入口](docs/PIPELINE.md) · [源码运行与打包](docs/BUILD.md) · [免责声明](DISCLAIMER.md)
 
 [宾得滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/PENTAX-Filters-3.5.11.zip) · [理光 GR IV 滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/RICOH-GR-IV-Filters-3.5.11.zip) · [原厂拆解数据](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/SOOC-Recovered-Color-Data-3.5.11.zip) · [文件清单与导入方法](docs/FILTERS.md)
+
+3.5.12 源码加入了中英文界面。顶部「语言 / Language」即时切换，程序会记住选择。
 
 ## 我们做了什么
 

@@ -210,7 +210,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE previous,LPWSTR unused,int show
     }
     if(!quiet)launcher_splash_open(instance,1);
     PayloadWork *job=HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sizeof(PayloadWork));
-    if(!job)return fail(L"无法准备启动资源。");
+    if(!job)return fail(launcher_splash_english()?L"Could not prepare startup files.":L"无法准备启动资源。");
     job->error=PREPARE_FAILED;
     HANDLE ready=NULL;
     int result=12,may_clean=1;
@@ -263,8 +263,9 @@ cleanup:
     if(ready)CloseHandle(ready);
     if(job->crypto)CryptReleaseContext(job->crypto,0);
     int prepare_error=job->error;HeapFree(GetProcessHeap(),0,job);
-    if(result==12 && prepare_error==PREPARE_CRYPTO_FAILED)return fail(L"无法初始化完整性检查。");
-    if(result==12 && prepare_error==PREPARE_NO_SPACE)return fail(L"没有找到空间足够且可写的本地磁盘。请留出至少 4 GB 空间后重试；程序未修改照片。");
-    if(result==12)return fail(L"程序启动或文件完整性检查失败。请重新取得完整 EXE，并检查临时磁盘可写及空间充足。");
+    int english=launcher_splash_english();
+    if(result==12 && prepare_error==PREPARE_CRYPTO_FAILED)return fail(english?L"Could not initialize the file check.":L"无法初始化完整性检查。");
+    if(result==12 && prepare_error==PREPARE_NO_SPACE)return fail(english?L"No writable drive has enough free space. Free some space and try again.":L"没有找到空间足够且可写的本地磁盘。请留出至少 4 GB 空间后重试；程序未修改照片。");
+    if(result==12)return fail(english?L"The app could not start or verify its files. Download a fresh EXE and check the temporary drive.":L"程序启动或文件完整性检查失败。请重新取得完整 EXE，并检查临时磁盘可写及空间充足。");
     return result;
 }

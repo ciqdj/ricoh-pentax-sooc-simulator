@@ -3,8 +3,7 @@ from functools import lru_cache
 import math
 import numpy as np
 from PIL import Image
-import tkinter as tk
-from tkinter import ttk
+from ui_language import tk, ttk
 from ui_controls import CollapsibleSection,Tooltip
 
 DEFAULT={'regions':(0.,)*5,'points':((0.,0.),(1.,1.))}

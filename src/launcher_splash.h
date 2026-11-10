@@ -3,6 +3,7 @@
 #include <windows.h>
 
 enum { SPLASH_PREPARE, SPLASH_COPY, SPLASH_VERIFY, SPLASH_START };
+int launcher_splash_english(void);
 int launcher_splash_open(HINSTANCE instance, int visible);
 void launcher_splash_stage(int stage, int percent);
 void launcher_splash_pump(void);
