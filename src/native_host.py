@@ -11,7 +11,7 @@ import pefile
 import sys
 RESOURCE_ROOT=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent))
 EXE=RESOURCE_ROOT/'native'/'Digital Camera Utility 5.exe'
-if not EXE.is_file() and not getattr(sys,'frozen',False):
+if not EXE.is_file():
     EXE=Path(os.environ.get('ProgramFiles','C:/Program Files'))/'PENTAX/Digital Camera Utility 5/Digital Camera Utility 5.exe'
 EXPECTED='d55ec396ce9c93a3e61e83e2ed91f774787a16f32de9ea3a9cdd4fee9e75d387'
 
@@ -21,14 +21,20 @@ def emit(event,**fields):
 
 class Host:
     def __init__(self):
-        if hashlib.file_digest(EXE.open('rb'),'sha256').hexdigest()!=EXPECTED:
-            raise RuntimeError('原厂引擎版本不匹配，请重新取得完整安装包')
+        if not EXE.is_file():
+            raise RuntimeError('宾得调色需要安装 64 位 Digital Camera Utility 5 并更新到 5.10.2。')
+        with EXE.open('rb') as stream:
+            if hashlib.file_digest(stream,'sha256').hexdigest()!=EXPECTED:
+                raise RuntimeError('原厂引擎版本不匹配，需要 Digital Camera Utility 5.10.2.2。')
         if getattr(sys,'frozen',False):
             manifest=json.loads((RESOURCE_ROOT/'native-data/engine-manifest.json').read_text(encoding='utf-8'))
             for name,expected in manifest.items():
-                with (EXE.parent/name).open('rb') as stream:
+                companion=EXE.parent/name
+                if not companion.is_file():
+                    raise RuntimeError('原厂配套文件缺失，请检查 Digital Camera Utility 5 安装。')
+                with companion.open('rb') as stream:
                     if hashlib.file_digest(stream,'sha256').hexdigest()!=expected:
-                        raise RuntimeError('原厂配套组件不完整，请重新取得完整安装包')
+                        raise RuntimeError('原厂配套文件版本不匹配，请检查 Digital Camera Utility 5 安装。')
         self.k=C.WinDLL('kernel32',use_last_error=True)
         self.k.SetErrorMode(0x0001|0x0002|0x8000)
         self.k.LoadLibraryW.argtypes=[C.c_wchar_p];self.k.LoadLibraryW.restype=C.c_void_p
