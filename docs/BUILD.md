@@ -9,14 +9,14 @@ py -3.12 -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
 ```
 
-Git 仓库包含应用代码、参数资源、LUT 与许可证。较大的 AI 模型、运行库、视频工具和兼容引擎文件在 Windows 发布包中。先下载相同版本的 EXE，再从中提取运行资源：
+Git 仓库包含应用代码、参数资源、LUT 与许可证。较大的 AI 模型、运行库和视频工具在公开 Windows 发布包中。下载 EXE 后，从中提取运行资源：
 
 ```powershell
-.venv\Scripts\python tools\import_runtime.py "D:\Downloads\RICOH-PENTAX-SOOC-Simulator-3.5.11.exe"
+.venv\Scripts\python tools\import_runtime.py "D:\Downloads\RICOH-PENTAX-SOOC-Simulator-3.5.12.exe"
 .venv\Scripts\python src\workbench_entry.py
 ```
 
-提取器只接受资源白名单，写入 `src`；不会从发布包替换 Python 源文件。宾得宿主锁定 DCU 5.10.2.2，版本校验在 `src/native_host.py` 中。源码模式也可使用本机对应版本的 DCU 安装。
+提取器只将白名单中的运行资源写入 `src`。3.5.12 公开版和源码模式通过本机安装的 64 位 DCU 5 运行宾得处理，要求文件版本 5.10.2.2。安装原厂软件后可使用官方更新器。版本校验在 `src/native_host.py` 中。[原厂更新器](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html)
 
 ## 运行针对本次改动的检查
 

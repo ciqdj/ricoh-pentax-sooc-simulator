@@ -10,7 +10,9 @@ Open a RAW or a finished photo and try Pentax's four seasonal looks, Reversal Fi
 
 [Windows downloads](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/latest) · [Pipeline](docs/PIPELINE.md) · [Build instructions](docs/BUILD.md) · [Disclaimer](DISCLAIMER.md)
 
-Version 3.5.12 adds a language menu in the top bar. Select **English** to change the interface. The app remembers your selection. The 3.5.11 public Windows download uses the earlier interface.
+Version 3.5.12 adds a language menu in the top bar. Select **English** to change the interface. The app remembers your selection.
+
+For Pentax processing, install the original 64-bit Digital Camera Utility 5 and update it to 5.10.2 (file version 5.10.2.2). The public Windows build uses the copy installed under Program Files. [Official updater](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html)
 
 ## What it does
 

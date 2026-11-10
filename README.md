@@ -14,7 +14,7 @@
 
 [宾得滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/PENTAX-Filters-3.5.11.zip) · [理光 GR IV 滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/RICOH-GR-IV-Filters-3.5.11.zip) · [原厂拆解数据](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/SOOC-Recovered-Color-Data-3.5.11.zip) · [文件清单与导入方法](docs/FILTERS.md)
 
-3.5.12 源码加入了中英文界面。顶部「语言 / Language」即时切换，程序会记住选择。
+3.5.12 在顶部提供「语言 / Language」即时切换，并记住上次的选择。公开 Windows 版的宾得调色调用本机安装的 64 位 Digital Camera Utility 5，要求文件版本 5.10.2.2。先安装原厂软件，再按需更新到 5.10.2。[原厂更新器](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html)
 
 ## 我们做了什么
 
