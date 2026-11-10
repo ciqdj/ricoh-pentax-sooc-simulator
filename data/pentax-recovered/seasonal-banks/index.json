@@ -1,0 +1,89 @@
+[
+  {
+    "bank": "FUYUNO",
+    "model": "PENTAX K-3 Mark III",
+    "matrix_count": 34,
+    "mode_ids": [
+      32
+    ],
+    "public_sample_url": "https://www.ricoh-imaging.co.jp/english/products/k-3-3/firmup/img/ver1_70_1_lg.jpg"
+  },
+  {
+    "bank": "HARUBENI_miya_0",
+    "model": "PENTAX K-3 Mark III",
+    "matrix_count": 36,
+    "mode_ids": [
+      30,
+      31,
+      32
+    ],
+    "public_sample_url": "https://pentaxofficial.com/uploads/1.IMGP0294_%E6%98%A5%E7%B4%85-scaled.jpg"
+  },
+  {
+    "bank": "HARUBENI_miya_1",
+    "model": "PENTAX K-3 Mark III",
+    "matrix_count": 36,
+    "mode_ids": [
+      30,
+      31,
+      32
+    ],
+    "public_sample_url": "https://pentaxofficial.com/uploads/2.IMGP0166_%E6%98%A5%E7%B4%85-scaled.jpg"
+  },
+  {
+    "bank": "HARUBENI_miya_2",
+    "model": "PENTAX K-3 Mark III",
+    "matrix_count": 36,
+    "mode_ids": [
+      30,
+      31,
+      32
+    ],
+    "public_sample_url": "https://pentaxofficial.com/uploads/3.IMGP0045_%E6%98%A5%E7%B4%85-scaled.jpg"
+  },
+  {
+    "bank": "HARUBENI_miya_K1_0",
+    "model": "PENTAX K-1 Mark II",
+    "matrix_count": 23,
+    "mode_ids": [
+      29
+    ]
+  },
+  {
+    "bank": "HARUBENI_miya_K1_1",
+    "model": "PENTAX K-1 Mark II",
+    "matrix_count": 23,
+    "mode_ids": [
+      29
+    ]
+  },
+  {
+    "bank": "HARUBENI_miya_K1_2",
+    "model": "PENTAX K-1 Mark II",
+    "matrix_count": 22,
+    "mode_ids": []
+  },
+  {
+    "bank": "KATEN",
+    "model": "PENTAX K-3 Mark III",
+    "matrix_count": 33,
+    "mode_ids": [],
+    "public_sample_url": "https://www.ricoh-imaging.co.jp/english/products/k-3-3/firmup/img/ver1_50_1_lg.jpg"
+  },
+  {
+    "bank": "KATEN_bright",
+    "model": "PENTAX K-3 Mark III",
+    "matrix_count": 33,
+    "mode_ids": [],
+    "public_sample_url": "https://www.ricoh-imaging.co.jp/english/products/k-3-3/firmup/img/ver1_50_2_lg.jpg"
+  },
+  {
+    "bank": "KYUSHU",
+    "model": "PENTAX K-3 Mark III",
+    "matrix_count": 34,
+    "mode_ids": [
+      31
+    ],
+    "public_sample_url": "https://www.ricoh-imaging.co.jp/english/products/k-3-3/firmup/img/ver1_60_1_lg.jpg"
+  }
+]

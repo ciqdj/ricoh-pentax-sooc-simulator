@@ -1,0 +1,1942 @@
+{
+  "source_sha256": "d55ec396ce9c93a3e61e83e2ed91f774787a16f32de9ea3a9cdd4fee9e75d387",
+  "scope": "Static fallback matrix selection, monochrome matrix and contrast scalar only",
+  "matrix_entry_count": 124,
+  "matrix_source": [
+    {
+      "preferred_va": "0x141c47f60",
+      "source_int16_row": [
+        391,
+        -145,
+        10,
+        -36,
+        352,
+        -60,
+        -12,
+        -50,
+        318
+      ],
+      "sha256": "fa7adc8f9c94d4b2092d90725973e2900301220499cc342a4f1cec7836d6f9ed"
+    },
+    {
+      "preferred_va": "0x141c47f72",
+      "source_int16_row": [
+        424,
+        -166,
+        -2,
+        -42,
+        380,
+        -82,
+        -22,
+        -85,
+        363
+      ],
+      "sha256": "7f575d14b5906eb6a112900c926a50bec908bd327b476bf91492f16eecb406f3"
+    },
+    {
+      "preferred_va": "0x141c47f84",
+      "source_int16_row": [
+        433,
+        -175,
+        -2,
+        -59,
+        397,
+        -82,
+        -31,
+        -65,
+        352
+      ],
+      "sha256": "6c696dc6fab8816f69c5ce3250d673c72aeb9e5b8a7cb380bf2085cf3832db39"
+    },
+    {
+      "preferred_va": "0x141c47f96",
+      "source_int16_row": [
+        435,
+        -179,
+        0,
+        -56,
+        400,
+        -88,
+        -45,
+        -97,
+        398
+      ],
+      "sha256": "ec94e230b711e1d679a627adbd3b3bd8aa4090b98a17fe300d35c2a238e80960"
+    },
+    {
+      "preferred_va": "0x141c47fa8",
+      "source_int16_row": [
+        467,
+        -208,
+        -3,
+        -43,
+        432,
+        -133,
+        -17,
+        -45,
+        318
+      ],
+      "sha256": "e983bfaa935e1f24a64ec4c448cfd1c6dae483ec885e73cca559946751cc171f"
+    },
+    {
+      "preferred_va": "0x141c47fba",
+      "source_int16_row": [
+        254,
+        -24,
+        26,
+        -27,
+        288,
+        -5,
+        -12,
+        16,
+        252
+      ],
+      "sha256": "e7320dfa177b319dd6a543b640116cf4f54ba66076a800f6ae9d61c051b82ef7"
+    },
+    {
+      "preferred_va": "0x141c47fcc",
+      "source_int16_row": [
+        426,
+        -200,
+        30,
+        -46,
+        386,
+        -84,
+        -18,
+        -152,
+        426
+      ],
+      "sha256": "9818fc86b2d420a931cff1d8f5fb5e520d96f66c9a0201cf4046eb3caf02e1f8"
+    },
+    {
+      "preferred_va": "0x141c47fde",
+      "source_int16_row": [
+        210,
+        44,
+        2,
+        -6,
+        235,
+        27,
+        47,
+        20,
+        189
+      ],
+      "sha256": "4d07df0ade900f8b0d8e8d5b1c24245ca92be61c7b2370a5cb04963b5aff8999"
+    },
+    {
+      "preferred_va": "0x141c47ff0",
+      "source_int16_row": [
+        464,
+        -213,
+        5,
+        -124,
+        509,
+        -129,
+        -130,
+        -243,
+        629
+      ],
+      "sha256": "80b2efc8455e2e267f103749ec9662097b1481fdd483255a4e9036e11486f91f"
+    },
+    {
+      "preferred_va": "0x141c48014",
+      "source_int16_row": [
+        392,
+        -142,
+        6,
+        -4,
+        319,
+        -59,
+        1,
+        -44,
+        299
+      ],
+      "sha256": "f1ebccf007e2199dbb1ade9ab2416decfb34e45abe56152fa03b5cc417d69c99"
+    },
+    {
+      "preferred_va": "0x141c48026",
+      "source_int16_row": [
+        326,
+        -86,
+        16,
+        23,
+        218,
+        15,
+        26,
+        7,
+        223
+      ],
+      "sha256": "fe79aee627e6071edef49d72d68e7d5f7a1ef70644b7ce0b32e54bff62e4301c"
+    },
+    {
+      "preferred_va": "0x141c48038",
+      "source_int16_row": [
+        354,
+        -128,
+        30,
+        -42,
+        321,
+        -23,
+        -15,
+        -48,
+        319
+      ],
+      "sha256": "8ab3efa02d9891b3d5f04f0e624fba2fd03c53f63edc3754bcacbe85fa06c0fe"
+    },
+    {
+      "preferred_va": "0x141c48050",
+      "source_int16_row": [
+        393,
+        -121,
+        -16,
+        -28,
+        354,
+        -70,
+        -3,
+        -65,
+        324
+      ],
+      "sha256": "426e320ca02b023060bd7a17acd734b92f2a0073078b4d32b249efa04f4a1940"
+    },
+    {
+      "preferred_va": "0x141c48062",
+      "source_int16_row": [
+        435,
+        -140,
+        -39,
+        -38,
+        398,
+        -104,
+        -5,
+        -79,
+        340
+      ],
+      "sha256": "af5e96f2db9b89a3a9dfbfe534cd3131056eded1eb9f587361203e08ce2bcf52"
+    },
+    {
+      "preferred_va": "0x141c48074",
+      "source_int16_row": [
+        434,
+        -148,
+        -30,
+        -50,
+        398,
+        -92,
+        -22,
+        -83,
+        361
+      ],
+      "sha256": "1b84e5b87171ef56340c1ca4ebc87d4d09f37ec74cde5a5731b42e31d62c35d9"
+    },
+    {
+      "preferred_va": "0x141c48086",
+      "source_int16_row": [
+        435,
+        -151,
+        -28,
+        -47,
+        401,
+        -98,
+        -36,
+        -118,
+        410
+      ],
+      "sha256": "662cf5464cad946a87fded5ad19315fa93c4c9086462a0b019255d3cc2328c10"
+    },
+    {
+      "preferred_va": "0x141c48098",
+      "source_int16_row": [
+        468,
+        -179,
+        -33,
+        -35,
+        437,
+        -146,
+        -8,
+        -60,
+        324
+      ],
+      "sha256": "def6278e61def1e63d892a97109dd9d42018076ed978df114907730b825ed554"
+    },
+    {
+      "preferred_va": "0x141c480aa",
+      "source_int16_row": [
+        258,
+        -9,
+        7,
+        -19,
+        288,
+        -13,
+        -4,
+        4,
+        256
+      ],
+      "sha256": "ae6a453e5adc39313251e53def2292c35cee06378090ad4015e67a1a9eeb4e89"
+    },
+    {
+      "preferred_va": "0x141c480bc",
+      "source_int16_row": [
+        426,
+        -174,
+        4,
+        -38,
+        388,
+        -94,
+        -9,
+        -173,
+        438
+      ],
+      "sha256": "3303690a781e28c616888f5a6dd3d6528c3b1bcf1aea6a768af473a898cbeb19"
+    },
+    {
+      "preferred_va": "0x141c480ce",
+      "source_int16_row": [
+        214,
+        58,
+        -16,
+        1,
+        236,
+        19,
+        55,
+        15,
+        186
+      ],
+      "sha256": "2be319a0d882d74488006aeffc80c8f98025fb0b7873e2c6872b395834649c86"
+    },
+    {
+      "preferred_va": "0x141c480e0",
+      "source_int16_row": [
+        468,
+        -181,
+        -31,
+        -125,
+        539,
+        -158,
+        -111,
+        -275,
+        642
+      ],
+      "sha256": "21dd8bdc864b728423a7b39b2ac3c54e78e602312d3df1618394a2b76515b7e2"
+    },
+    {
+      "preferred_va": "0x141c48104",
+      "source_int16_row": [
+        395,
+        -118,
+        -21,
+        4,
+        322,
+        -70,
+        9,
+        -57,
+        304
+      ],
+      "sha256": "01185580e98f0148a8b3f06c100dcf5fc160ead8e2e1c3a648909607b6ec25f0"
+    },
+    {
+      "preferred_va": "0x141c48116",
+      "source_int16_row": [
+        329,
+        -66,
+        -7,
+        30,
+        220,
+        6,
+        34,
+        -1,
+        223
+      ],
+      "sha256": "ff52bc7283a67ba2a2f1636a6e82a5541c3d7b06fe8fa110c810be0ec2c0f57f"
+    },
+    {
+      "preferred_va": "0x141c48128",
+      "source_int16_row": [
+        357,
+        -108,
+        7,
+        -34,
+        321,
+        -31,
+        -6,
+        -64,
+        326
+      ],
+      "sha256": "5afc2e5fbaacf75c23d05e8c2ee7e590a3f053f5f8f8379dcbf59eea0c428fe4"
+    },
+    {
+      "preferred_va": "0x141c48140",
+      "source_int16_row": [
+        389,
+        -112,
+        -21,
+        -45,
+        349,
+        -48,
+        6,
+        -135,
+        385
+      ],
+      "sha256": "c83af62568b3e96d30ddf17cc41b0cf22ff9c347dab9994988483de1af0c65db"
+    },
+    {
+      "preferred_va": "0x141c48152",
+      "source_int16_row": [
+        421,
+        -126,
+        -39,
+        -65,
+        394,
+        -73,
+        1,
+        -181,
+        436
+      ],
+      "sha256": "c8af7ad642321bab5511aaf156a115a7712d5c6c0e1bf016cd56d6defc45b8f7"
+    },
+    {
+      "preferred_va": "0x141c48164",
+      "source_int16_row": [
+        430,
+        -134,
+        -40,
+        -69,
+        396,
+        -71,
+        -11,
+        -160,
+        427
+      ],
+      "sha256": "4943d4d76fe839ad24164cf9a5bd537227ccc194b9e99721dde9ef3b6f8d9867"
+    },
+    {
+      "preferred_va": "0x141c48176",
+      "source_int16_row": [
+        432,
+        -138,
+        -38,
+        -66,
+        400,
+        -78,
+        -22,
+        -204,
+        482
+      ],
+      "sha256": "76652f5f63e04813c1426eed198b1c3a3973b85a286d941a5caaa8f92a1dc5ee"
+    },
+    {
+      "preferred_va": "0x141c48188",
+      "source_int16_row": [
+        464,
+        -163,
+        -45,
+        -57,
+        444,
+        -131,
+        1,
+        -130,
+        385
+      ],
+      "sha256": "5a94c606b30ad7d2d5f2b660dc9e4b39298d6aa73a58e6b22e7adca3a7a658ca"
+    },
+    {
+      "preferred_va": "0x141c4819a",
+      "source_int16_row": [
+        253,
+        -11,
+        14,
+        -33,
+        274,
+        15,
+        1,
+        -55,
+        310
+      ],
+      "sha256": "f97579630603e4432005b4f8934fab350c422714fdfaea9461bd4d9eca505e58"
+    },
+    {
+      "preferred_va": "0x141c481ac",
+      "source_int16_row": [
+        425,
+        -167,
+        -2,
+        -56,
+        386,
+        -74,
+        7,
+        -262,
+        511
+      ],
+      "sha256": "0999036f0704ab3213cf7266c8666ca254973bcc56b458c2c12588361e573391"
+    },
+    {
+      "preferred_va": "0x141c481be",
+      "source_int16_row": [
+        206,
+        57,
+        -7,
+        -9,
+        217,
+        48,
+        56,
+        -29,
+        229
+      ],
+      "sha256": "1e9a20c147641cce016bca012ea205d13449cb6edf2b8a90d66a09e384f4df8d"
+    },
+    {
+      "preferred_va": "0x141c481d0",
+      "source_int16_row": [
+        462,
+        -170,
+        -36,
+        -138,
+        511,
+        -117,
+        -90,
+        -412,
+        758
+      ],
+      "sha256": "2c32455bcb687e583705274ee5a54687e56c61b913a0d44d2280c48d7b2c7426"
+    },
+    {
+      "preferred_va": "0x141c481f4",
+      "source_int16_row": [
+        390,
+        -108,
+        -26,
+        -13,
+        320,
+        -51,
+        17,
+        -123,
+        362
+      ],
+      "sha256": "bc8211c93785c42703a9af194405f4b9c38de3ada10e6042f7be568760aed7e3"
+    },
+    {
+      "preferred_va": "0x141c48206",
+      "source_int16_row": [
+        324,
+        -62,
+        -6,
+        20,
+        205,
+        31,
+        37,
+        -52,
+        271
+      ],
+      "sha256": "e992d5d00c1f8e0b39da7b83695be21ff9c6faccb8d6b0d05704b0195c7c5f07"
+    },
+    {
+      "preferred_va": "0x141c48218",
+      "source_int16_row": [
+        353,
+        -104,
+        7,
+        -48,
+        309,
+        -5,
+        3,
+        -134,
+        387
+      ],
+      "sha256": "5e58cc07dff70d4ff51b594488d5a063d34bf33ddf46670bf26fdcd972b42465"
+    },
+    {
+      "preferred_va": "0x141c48230",
+      "source_int16_row": [
+        395,
+        -115,
+        -24,
+        -35,
+        378,
+        -87,
+        -1,
+        -54,
+        311
+      ],
+      "sha256": "cac5240d56f7b1c451a4a93177576b4fef81bb9c3352e88c60326ab52c2c5216"
+    },
+    {
+      "preferred_va": "0x141c48242",
+      "source_int16_row": [
+        428,
+        -134,
+        -38,
+        -41,
+        407,
+        -110,
+        -10,
+        -93,
+        359
+      ],
+      "sha256": "8261958070647f878d2b26a8045566968b711d1460692dbb8051c77340c546ce"
+    },
+    {
+      "preferred_va": "0x141c48254",
+      "source_int16_row": [
+        437,
+        -143,
+        -38,
+        -58,
+        424,
+        -110,
+        -19,
+        -72,
+        347
+      ],
+      "sha256": "73f4be1b76accc20107b88e7a1827c04776fe354c88a09ed4814ed9ddf4f6ffe"
+    },
+    {
+      "preferred_va": "0x141c48266",
+      "source_int16_row": [
+        439,
+        -147,
+        -36,
+        -55,
+        427,
+        -116,
+        -33,
+        -108,
+        397
+      ],
+      "sha256": "16d69ac13dd8f4956fd622dadca0d29ae91783fa230a4fb9dc9e509bbb49b0a5"
+    },
+    {
+      "preferred_va": "0x141c48278",
+      "source_int16_row": [
+        445,
+        -174,
+        -15,
+        -43,
+        457,
+        -158,
+        -1,
+        -65,
+        322
+      ],
+      "sha256": "459acdee79b6a221ef63c68e028ba1b3ad6f9a9f51e53aae3d105b8792d4db35"
+    },
+    {
+      "preferred_va": "0x141c4828a",
+      "source_int16_row": [
+        258,
+        2,
+        -4,
+        -25,
+        310,
+        -29,
+        -3,
+        17,
+        242
+      ],
+      "sha256": "da5538b33215f049f14ecaf97cdd5013eb690cb0412f29d5efb1f534ba5c44d1"
+    },
+    {
+      "preferred_va": "0x141c4829c",
+      "source_int16_row": [
+        430,
+        -170,
+        -4,
+        -45,
+        413,
+        -112,
+        -4,
+        -165,
+        425
+      ],
+      "sha256": "dd975049f0680f5632bb75fb3b04ce90b8b508c2f0a96aa4aaff8a64f3a7ce20"
+    },
+    {
+      "preferred_va": "0x141c482ae",
+      "source_int16_row": [
+        213,
+        71,
+        -28,
+        -3,
+        256,
+        3,
+        55,
+        28,
+        173
+      ],
+      "sha256": "917ca9ec711125e56b75e866039f0bb0bc33117aa2f385c4b954e69f9c9cd4c5"
+    },
+    {
+      "preferred_va": "0x141c482c0",
+      "source_int16_row": [
+        468,
+        -181,
+        -31,
+        -125,
+        539,
+        -158,
+        -111,
+        -275,
+        642
+      ],
+      "sha256": "21dd8bdc864b728423a7b39b2ac3c54e78e602312d3df1618394a2b76515b7e2"
+    },
+    {
+      "preferred_va": "0x141c482e4",
+      "source_int16_row": [
+        397,
+        -112,
+        -29,
+        -3,
+        346,
+        -87,
+        11,
+        -46,
+        291
+      ],
+      "sha256": "8c336a7d28b24a27e6f87053131df449636c473430860d0c6dc721cfde43bbc4"
+    },
+    {
+      "preferred_va": "0x141c482f6",
+      "source_int16_row": [
+        330,
+        -58,
+        -16,
+        26,
+        240,
+        -10,
+        34,
+        12,
+        210
+      ],
+      "sha256": "1b3ba398665d1430a0bc017ed7eff7c5e86655256ec889e841747b8593510684"
+    },
+    {
+      "preferred_va": "0x141c48308",
+      "source_int16_row": [
+        359,
+        -101,
+        -2,
+        -40,
+        344,
+        -48,
+        -4,
+        -53,
+        313
+      ],
+      "sha256": "8ebd9dc29e191373f904cbc6acb67f31454bf2759a8db842ed7d4a25718b7436"
+    },
+    {
+      "preferred_va": "0x141c4838c",
+      "source_int16_row": [
+        399,
+        -130,
+        -13,
+        -36,
+        355,
+        -63,
+        10,
+        -208,
+        454
+      ],
+      "sha256": "1f124bcc0ec73f3ef2f339cf32330ad2fb31cd6bc280ae7840cc708e73b3684a"
+    },
+    {
+      "preferred_va": "0x141c4839e",
+      "source_int16_row": [
+        201,
+        66,
+        -11,
+        4,
+        208,
+        44,
+        60,
+        -6,
+        202
+      ],
+      "sha256": "05497b28b4cdfa64bbad347b6bf858f814dc69b8684bcdb8bad9811f8b46486d"
+    },
+    {
+      "preferred_va": "0x141c483b0",
+      "source_int16_row": [
+        434,
+        -133,
+        -45,
+        -109,
+        464,
+        -99,
+        -84,
+        -337,
+        677
+      ],
+      "sha256": "0eb83df878aba800ce4208758bfa8c5d18ad89494cb100ea8903c254814b0b4e"
+    },
+    {
+      "preferred_va": "0x141c483d4",
+      "source_int16_row": [
+        390,
+        -104,
+        -30,
+        8,
+        290,
+        -42,
+        19,
+        -88,
+        325
+      ],
+      "sha256": "cac18ea998929d6151dc6a9ee0bef1e210d52f79e8e3e60b603a5ee3c4492361"
+    },
+    {
+      "preferred_va": "0x141c483e6",
+      "source_int16_row": [
+        308,
+        -38,
+        -14,
+        31,
+        197,
+        28,
+        42,
+        -26,
+        240
+      ],
+      "sha256": "0133681cfbfce9fd36e87e48b53370a56c0d493840d8913bd81c8617ff1a038f"
+    },
+    {
+      "preferred_va": "0x141c483f8",
+      "source_int16_row": [
+        334,
+        -75,
+        -3,
+        -30,
+        287,
+        -1,
+        8,
+        -97,
+        345
+      ],
+      "sha256": "57098845337b4dfc40b8cf52efb459040636c040d77cd0188c409dadd9b27bd9"
+    },
+    {
+      "preferred_va": "0x141c4847c",
+      "source_int16_row": [
+        428,
+        -169,
+        -3,
+        -44,
+        410,
+        -110,
+        5,
+        -212,
+        463
+      ],
+      "sha256": "7cb863d7c46e2438392a7f2c97f578a7fb62f5b29b7425dda248e0948e609c12"
+    },
+    {
+      "preferred_va": "0x141c4848e",
+      "source_int16_row": [
+        213,
+        68,
+        -25,
+        0,
+        244,
+        12,
+        60,
+        4,
+        192
+      ],
+      "sha256": "f7abe85cc4c60d9b370452025ff1efc2e61bd8f7f25cf0a21fffc2652f537af8"
+    },
+    {
+      "preferred_va": "0x141c484a0",
+      "source_int16_row": [
+        450,
+        -186,
+        -8,
+        -121,
+        503,
+        -126,
+        -81,
+        -340,
+        677
+      ],
+      "sha256": "4596fbe282de9f514a336e179b1b52a5e9aec8987ab318c48149cceb07227d49"
+    },
+    {
+      "preferred_va": "0x141c484c4",
+      "source_int16_row": [
+        394,
+        -109,
+        -29,
+        -1,
+        341,
+        -84,
+        19,
+        -81,
+        318
+      ],
+      "sha256": "7b2e598bc24ea7f4fb306080dd5ecbc0b0d36a1f14b7c0a8246422f1c8aaab4b"
+    },
+    {
+      "preferred_va": "0x141c484d6",
+      "source_int16_row": [
+        329,
+        -58,
+        -15,
+        29,
+        229,
+        -2,
+        40,
+        -16,
+        232
+      ],
+      "sha256": "5e7da4ce0316856d99f7b6a711c77e0940ae5cdee979fcb70ad5f4813d07e117"
+    },
+    {
+      "preferred_va": "0x141c484e8",
+      "source_int16_row": [
+        358,
+        -102,
+        0,
+        -37,
+        335,
+        -42,
+        4,
+        -90,
+        342
+      ],
+      "sha256": "4af75e0c141f4b155f76e200a0046b89db29a2353ab83dd6b8a806ac4643a7de"
+    },
+    {
+      "preferred_va": "0x141c4857e",
+      "source_int16_row": [
+        209,
+        46,
+        1,
+        -7,
+        214,
+        49,
+        60,
+        -59,
+        255
+      ],
+      "sha256": "5be6ddf504bc6e2e0e27f16936e944a0a88e93280227094825097de5cb858f07"
+    },
+    {
+      "preferred_va": "0x141c48590",
+      "source_int16_row": [
+        466,
+        -198,
+        -12,
+        -138,
+        540,
+        -146,
+        -84,
+        -501,
+        841
+      ],
+      "sha256": "4670e9f0a772539b5d219c9b7fa180a15b8bfd3ce7aec5f0da5c35ca0fc5d459"
+    },
+    {
+      "preferred_va": "0x141c485b4",
+      "source_int16_row": [
+        393,
+        -131,
+        -6,
+        -12,
+        331,
+        -63,
+        21,
+        -168,
+        403
+      ],
+      "sha256": "5ab5bcb6cbed8604e2634a71ef079f9aa26fef19b61e921b57b2345c133f1f81"
+    },
+    {
+      "preferred_va": "0x141c485c6",
+      "source_int16_row": [
+        328,
+        -83,
+        11,
+        22,
+        203,
+        31,
+        41,
+        -87,
+        302
+      ],
+      "sha256": "9b6fef8f314a090e420be584b75166f8ff9acb869ad3c4c0179513d031ad3045"
+    },
+    {
+      "preferred_va": "0x141c485d8",
+      "source_int16_row": [
+        357,
+        -129,
+        28,
+        -47,
+        317,
+        -14,
+        7,
+        -181,
+        430
+      ],
+      "sha256": "84ddbb0dfb0bcd8f6265bf91f9bb1ef8f41e49eea3811166269690ec2ea61ff6"
+    },
+    {
+      "preferred_va": "0x141c48680",
+      "source_int16_row": [
+        450,
+        -186,
+        -8,
+        -121,
+        503,
+        -126,
+        -81,
+        -340,
+        677
+      ],
+      "sha256": "4596fbe282de9f514a336e179b1b52a5e9aec8987ab318c48149cceb07227d49"
+    },
+    {
+      "preferred_va": "0x141c486a4",
+      "source_int16_row": [
+        381,
+        -120,
+        -5,
+        -2,
+        314,
+        -56,
+        24,
+        -90,
+        322
+      ],
+      "sha256": "bfbbe07df13cc3006cf9a8027e6991d00eb6dbd69b23138ffa09eb7dde0e27a2"
+    },
+    {
+      "preferred_va": "0x141c486b6",
+      "source_int16_row": [
+        329,
+        -58,
+        -15,
+        29,
+        229,
+        -2,
+        40,
+        -16,
+        232
+      ],
+      "sha256": "5e7da4ce0316856d99f7b6a711c77e0940ae5cdee979fcb70ad5f4813d07e117"
+    },
+    {
+      "preferred_va": "0x141c486c8",
+      "source_int16_row": [
+        358,
+        -102,
+        0,
+        -37,
+        335,
+        -42,
+        4,
+        -90,
+        342
+      ],
+      "sha256": "4af75e0c141f4b155f76e200a0046b89db29a2353ab83dd6b8a806ac4643a7de"
+    },
+    {
+      "preferred_va": "0x141c48770",
+      "source_int16_row": [
+        466,
+        -207,
+        -3,
+        -151,
+        582,
+        -175,
+        -80,
+        -379,
+        715
+      ],
+      "sha256": "ec3e4023d8aabdf8064a5eee6a819cd07a2f85ea6600f004f6bbe5d36ada71d7"
+    },
+    {
+      "preferred_va": "0x141c48794",
+      "source_int16_row": [
+        392,
+        -132,
+        -4,
+        -21,
+        366,
+        -89,
+        20,
+        -95,
+        331
+      ],
+      "sha256": "394d3ff731ae88fdaad129c449ae42a5c78a5488cf5c98d9c821ad52ccb28173"
+    },
+    {
+      "preferred_va": "0x141c487a6",
+      "source_int16_row": [
+        336,
+        -61,
+        -19,
+        14,
+        269,
+        -27,
+        35,
+        -11,
+        232
+      ],
+      "sha256": "77bfb66062030332442934337d142baaff23cc35123977a7b452bd6733851dde"
+    },
+    {
+      "preferred_va": "0x141c487b8",
+      "source_int16_row": [
+        367,
+        -111,
+        0,
+        -58,
+        390,
+        -76,
+        -1,
+        -94,
+        351
+      ],
+      "sha256": "cbe16175d0e5a57e9bb682a71a0bc320d0fb42ae611aebdc68ffa584554a648b"
+    },
+    {
+      "preferred_va": "0x141c48896",
+      "source_int16_row": [
+        336,
+        -61,
+        -19,
+        14,
+        269,
+        -27,
+        35,
+        -11,
+        232
+      ],
+      "sha256": "77bfb66062030332442934337d142baaff23cc35123977a7b452bd6733851dde"
+    },
+    {
+      "preferred_va": "0x141c488a8",
+      "source_int16_row": [
+        367,
+        -111,
+        0,
+        -58,
+        390,
+        -77,
+        -94,
+        351,
+        0
+      ],
+      "sha256": "d1bca38ac8d7007296d74dd4369a26ada183702c5bb7e18e88829b784d8b8c3f"
+    },
+    {
+      "preferred_va": "0x141c488c0",
+      "source_int16_row": [
+        391,
+        -136,
+        1,
+        -54,
+        401,
+        -91,
+        9,
+        -106,
+        353
+      ],
+      "sha256": "15803e1d4765d12b5c8e88d51134fdba2aa49ecec9df421769d52afaa4e32c78"
+    },
+    {
+      "preferred_va": "0x141c488d2",
+      "source_int16_row": [
+        438,
+        -143,
+        -39,
+        -63,
+        469,
+        -150,
+        -4,
+        -145,
+        405
+      ],
+      "sha256": "57fe02ef53c2a3c1da5b0e264787847a2530bf8f4080bf2bcd7cb4320d033a42"
+    },
+    {
+      "preferred_va": "0x141c488e4",
+      "source_int16_row": [
+        448,
+        -154,
+        -38,
+        -81,
+        487,
+        -150,
+        -16,
+        -120,
+        392
+      ],
+      "sha256": "87f88b4d44428e37387f4c4b3b93bb20a018aff3dde88cab2105a10f68d79339"
+    },
+    {
+      "preferred_va": "0x141c488f6",
+      "source_int16_row": [
+        450,
+        -158,
+        -36,
+        -77,
+        491,
+        -158,
+        -26,
+        -166,
+        448
+      ],
+      "sha256": "bfedcbed9773f259ea5381b30502dc1c54688d500a57b1346c4511b9d8610f29"
+    },
+    {
+      "preferred_va": "0x141c48908",
+      "source_int16_row": [
+        507,
+        -214,
+        -37,
+        -76,
+        545,
+        -213,
+        -12,
+        -93,
+        361
+      ],
+      "sha256": "375ba061e9b0f745805ae450a5a8e0ff2eacb30f0ed02ca865a2879d4ef22444"
+    },
+    {
+      "preferred_va": "0x141c4891a",
+      "source_int16_row": [
+        276,
+        -19,
+        -1,
+        -38,
+        345,
+        -51,
+        -5,
+        -9,
+        270
+      ],
+      "sha256": "24221601d87e2e1a1395ac66fe42e031aaba8f7c4367943935505debec72e8df"
+    },
+    {
+      "preferred_va": "0x141c4892c",
+      "source_int16_row": [
+        404,
+        -172,
+        24,
+        -43,
+        416,
+        -117,
+        9,
+        -155,
+        402
+      ],
+      "sha256": "3f42040305bedb07826fe946eefff6b7c2c0e644035fceced0055f79220a9f10"
+    },
+    {
+      "preferred_va": "0x141c4893e",
+      "source_int16_row": [
+        211,
+        84,
+        -39,
+        -16,
+        286,
+        -14,
+        55,
+        12,
+        189
+      ],
+      "sha256": "d2159596a69e9dad8d81bc154d887cd546a409ed04a4db5ef8e4d8872e931f49"
+    },
+    {
+      "preferred_va": "0x141c48950",
+      "source_int16_row": [
+        466,
+        -207,
+        -3,
+        -151,
+        582,
+        -175,
+        -80,
+        -379,
+        715
+      ],
+      "sha256": "ec3e4023d8aabdf8064a5eee6a819cd07a2f85ea6600f004f6bbe5d36ada71d7"
+    },
+    {
+      "preferred_va": "0x141c48974",
+      "source_int16_row": [
+        392,
+        -132,
+        -4,
+        -21,
+        366,
+        -89,
+        20,
+        -95,
+        331
+      ],
+      "sha256": "394d3ff731ae88fdaad129c449ae42a5c78a5488cf5c98d9c821ad52ccb28173"
+    },
+    {
+      "preferred_va": "0x141c48986",
+      "source_int16_row": [
+        336,
+        -61,
+        -19,
+        14,
+        269,
+        -27,
+        35,
+        -11,
+        232
+      ],
+      "sha256": "77bfb66062030332442934337d142baaff23cc35123977a7b452bd6733851dde"
+    },
+    {
+      "preferred_va": "0x141c48998",
+      "source_int16_row": [
+        367,
+        -111,
+        0,
+        -58,
+        390,
+        -77,
+        -94,
+        351,
+        0
+      ],
+      "sha256": "d1bca38ac8d7007296d74dd4369a26ada183702c5bb7e18e88829b784d8b8c3f"
+    },
+    {
+      "preferred_va": "0x141c489b0",
+      "source_int16_row": [
+        351,
+        -108,
+        13,
+        -86,
+        405,
+        -63,
+        0,
+        -136,
+        392
+      ],
+      "sha256": "265ddb1f38bf959bb6eee2b88477f7a5d9e93f68f960f269449ca6cb228be8ae"
+    },
+    {
+      "preferred_va": "0x141c489c2",
+      "source_int16_row": [
+        394,
+        -108,
+        -30,
+        -98,
+        477,
+        -123,
+        -10,
+        -180,
+        446
+      ],
+      "sha256": "1e32e97ad8c079d054ed6cc30115ce2d92bf13fc431c1caeadf230555c62e9a1"
+    },
+    {
+      "preferred_va": "0x141c489d4",
+      "source_int16_row": [
+        405,
+        -119,
+        -30,
+        -115,
+        494,
+        -123,
+        -22,
+        -155,
+        433
+      ],
+      "sha256": "389874b39c452aa81d1eae263d1f1256db3adf9e7b051a7e5764d8c5df9df03c"
+    },
+    {
+      "preferred_va": "0x141c489e6",
+      "source_int16_row": [
+        407,
+        -123,
+        -28,
+        -111,
+        498,
+        -131,
+        -29,
+        -206,
+        491
+      ],
+      "sha256": "85a21f1c4ffd3a6e3d9850c7f59946591d1fcbf375d4bfc0934e293216694874"
+    },
+    {
+      "preferred_va": "0x141c489f8",
+      "source_int16_row": [
+        462,
+        -174,
+        -32,
+        -114,
+        558,
+        -188,
+        -20,
+        -124,
+        400
+      ],
+      "sha256": "449d5716bd68af1e140d56ef28c29dd8f60abf1730b82281fc94ca9ff56b00ca"
+    },
+    {
+      "preferred_va": "0x141c48a0a",
+      "source_int16_row": [
+        239,
+        1,
+        16,
+        -68,
+        346,
+        -22,
+        -18,
+        -32,
+        306
+      ],
+      "sha256": "64e4303cdce33d94e17649b9ca9c8e9897971265ba2882b9286d951ab09d4f64"
+    },
+    {
+      "preferred_va": "0x141c48a1c",
+      "source_int16_row": [
+        365,
+        -145,
+        36,
+        -76,
+        422,
+        -90,
+        3,
+        -189,
+        442
+      ],
+      "sha256": "6ddba9079e3be582c4fa409d30fa1b5d0bb39f7a1872f308c843118e06d61fc5"
+    },
+    {
+      "preferred_va": "0x141c48a2e",
+      "source_int16_row": [
+        175,
+        102,
+        -21,
+        -45,
+        286,
+        15,
+        36,
+        -1,
+        221
+      ],
+      "sha256": "fb13b31fc535a140e06c4bd805c137848449ae8bc78ce1a036ed4877710dc041"
+    },
+    {
+      "preferred_va": "0x141c48a40",
+      "source_int16_row": [
+        424,
+        -173,
+        5,
+        -184,
+        585,
+        -145,
+        -67,
+        -445,
+        768
+      ],
+      "sha256": "2942375c5008cfaa6bf4c15893bd0948ff9827a5cc1d5447f714609350fb41a1"
+    },
+    {
+      "preferred_va": "0x141c48a64",
+      "source_int16_row": [
+        351,
+        -103,
+        8,
+        -54,
+        372,
+        -62,
+        9,
+        -122,
+        369
+      ],
+      "sha256": "c8a912b47d6c4380b63abd839239b0a6eead41d2438a6be0fd386546457af309"
+    },
+    {
+      "preferred_va": "0x141c48a76",
+      "source_int16_row": [
+        296,
+        -35,
+        -5,
+        -16,
+        272,
+        0,
+        18,
+        -28,
+        266
+      ],
+      "sha256": "2044351e6b1019e1a70265aaf74e8b247eee21ae4fd579fac46e3afef6dc6854"
+    },
+    {
+      "preferred_va": "0x141c48a88",
+      "source_int16_row": [
+        327,
+        -84,
+        13,
+        -89,
+        392,
+        -47,
+        -10,
+        -125,
+        391
+      ],
+      "sha256": "43f7337228bcf8357dd2b9b60d9970358192001d12325b0178c726b3606401b2"
+    },
+    {
+      "preferred_va": "0x141c48aa0",
+      "source_int16_row": [
+        412,
+        -159,
+        3,
+        -44,
+        385,
+        -85,
+        11,
+        -110,
+        355
+      ],
+      "sha256": "7899515fa2b270b74404d7900d0a9ec8dbecdd000cc6a494d07e658d5d9cc47d"
+    },
+    {
+      "preferred_va": "0x141c48ab2",
+      "source_int16_row": [
+        464,
+        -177,
+        -31,
+        -54,
+        450,
+        -140,
+        -3,
+        -156,
+        415
+      ],
+      "sha256": "fc37263705da770fc932106ada7dbe5a1f373ede435e58033d56120ec46a7199"
+    },
+    {
+      "preferred_va": "0x141c48ac4",
+      "source_int16_row": [
+        418,
+        -159,
+        -3,
+        -78,
+        449,
+        -115,
+        -11,
+        -62,
+        329
+      ],
+      "sha256": "9ae21699137e073ffc3056f6f87979c7e47bdd20091411bd99925dc43cc5ebdf"
+    },
+    {
+      "preferred_va": "0x141c48ad6",
+      "source_int16_row": [
+        486,
+        -209,
+        -21,
+        -58,
+        459,
+        -145,
+        -14,
+        -190,
+        460
+      ],
+      "sha256": "25e8de6a4f96e6242372c570e51999c1cf5c3e6a0adc0c1cbf9c78480c52a6a2"
+    },
+    {
+      "preferred_va": "0x141c48ae8",
+      "source_int16_row": [
+        530,
+        -247,
+        -27,
+        -63,
+        520,
+        -201,
+        -10,
+        -94,
+        360
+      ],
+      "sha256": "b3913c0b2e5dda2fa656273917cdb9960cdf2c5d701777144d0006bf53429a8a"
+    },
+    {
+      "preferred_va": "0x141c48afa",
+      "source_int16_row": [
+        276,
+        -19,
+        -1,
+        -38,
+        345,
+        -51,
+        -5,
+        -9,
+        270
+      ],
+      "sha256": "24221601d87e2e1a1395ac66fe42e031aaba8f7c4367943935505debec72e8df"
+    },
+    {
+      "preferred_va": "0x141c48b0c",
+      "source_int16_row": [
+        404,
+        -172,
+        24,
+        -43,
+        416,
+        -117,
+        9,
+        -155,
+        402
+      ],
+      "sha256": "3f42040305bedb07826fe946eefff6b7c2c0e644035fceced0055f79220a9f10"
+    },
+    {
+      "preferred_va": "0x141c48b1e",
+      "source_int16_row": [
+        211,
+        84,
+        -39,
+        -16,
+        286,
+        -14,
+        55,
+        12,
+        189
+      ],
+      "sha256": "d2159596a69e9dad8d81bc154d887cd546a409ed04a4db5ef8e4d8872e931f49"
+    },
+    {
+      "preferred_va": "0x141c48b30",
+      "source_int16_row": [
+        466,
+        -207,
+        -3,
+        -151,
+        582,
+        -175,
+        -80,
+        -379,
+        715
+      ],
+      "sha256": "ec3e4023d8aabdf8064a5eee6a819cd07a2f85ea6600f004f6bbe5d36ada71d7"
+    },
+    {
+      "preferred_va": "0x141c48b42",
+      "source_int16_row": [
+        459,
+        -203,
+        0,
+        -36,
+        396,
+        -104,
+        0,
+        -116,
+        372
+      ],
+      "sha256": "a17298aa08868bb2e53f0955a4507da279af62f456b58746d24abf2ed4c38a8d"
+    },
+    {
+      "preferred_va": "0x141c48b54",
+      "source_int16_row": [
+        413,
+        -155,
+        -2,
+        -10,
+        349,
+        -83,
+        23,
+        -100,
+        333
+      ],
+      "sha256": "4119d1ac2f0c157f130021e0d28946771fa2a04b2b1628482297f719d62b7946"
+    },
+    {
+      "preferred_va": "0x141c48b66",
+      "source_int16_row": [
+        356,
+        -83,
+        -17,
+        25,
+        253,
+        -22,
+        40,
+        -19,
+        235
+      ],
+      "sha256": "9203103555b68b1d848af842bb88d7fa315f4c97157f3a3952e3c75b99dfc907"
+    },
+    {
+      "preferred_va": "0x141c48b78",
+      "source_int16_row": [
+        387,
+        -133,
+        2,
+        -49,
+        375,
+        -70,
+        1,
+        -98,
+        353
+      ],
+      "sha256": "69a56e842804ced720d59adb6b7899089f4338a5a7c4c8729bfc11dfbff24dfe"
+    },
+    {
+      "preferred_va": "0x141c48c56",
+      "source_int16_row": [
+        333,
+        -51,
+        -26,
+        10,
+        271,
+        -25,
+        34,
+        -14,
+        236
+      ],
+      "sha256": "e4257064eaf7c46c3655255541f2507cc77a5694a43bfc48944fd2d53de9a48a"
+    },
+    {
+      "preferred_va": "0x141c48c68",
+      "source_int16_row": [
+        364,
+        -100,
+        -8,
+        -63,
+        391,
+        -72,
+        0,
+        -102,
+        358
+      ],
+      "sha256": "5d3f868b00c0d6396aef1346f56e1807445645aca83878420d74b9bde6603598"
+    },
+    {
+      "preferred_va": "0x141c48d46",
+      "source_int16_row": [
+        323,
+        -53,
+        -14,
+        12,
+        265,
+        -21,
+        32,
+        -6,
+        230
+      ],
+      "sha256": "282b83c6794ca5aa33d8dce957b9752aa1c5a6c73cd30e861daa464b821d2bc7"
+    },
+    {
+      "preferred_va": "0x141c48d58",
+      "source_int16_row": [
+        353,
+        -101,
+        4,
+        -58,
+        382,
+        -68,
+        -2,
+        -87,
+        345
+      ],
+      "sha256": "5953c2510470f343f17495901a29252644736fe7052db23bb91074dbe72692cf"
+    },
+    {
+      "preferred_va": "0x141c48e36",
+      "source_int16_row": [
+        322,
+        -49,
+        -17,
+        9,
+        265,
+        -18,
+        32,
+        -11,
+        235
+      ],
+      "sha256": "ce58ce9215c7b2133d517600e6eb0c5dfe035644b60e78553d4d981051297961"
+    },
+    {
+      "preferred_va": "0x141c48e48",
+      "source_int16_row": [
+        353,
+        -97,
+        0,
+        -62,
+        382,
+        -64,
+        -1,
+        -95,
+        352
+      ],
+      "sha256": "23d0e42217d0c44f857a05067ae3cbd2483a87b485cb6f7cc650915cb4cb42b4"
+    },
+    {
+      "preferred_va": "0x141c48f26",
+      "source_int16_row": [
+        344,
+        -88,
+        0,
+        17,
+        251,
+        -12,
+        37,
+        -23,
+        242
+      ],
+      "sha256": "1f4b6c846f1d18ff953609c02c5d487d75d77f8be7ab4b5f148d342f6eb14518"
+    },
+    {
+      "preferred_va": "0x141c48f38",
+      "source_int16_row": [
+        376,
+        -138,
+        18,
+        -56,
+        372,
+        -60,
+        0,
+        -102,
+        358
+      ],
+      "sha256": "13a776bb3fe4dd169b82e43ac9d7126d5ce2d1188fc4aac0823616a2d4d6508b"
+    },
+    {
+      "preferred_va": "0x141c49016",
+      "source_int16_row": [
+        316,
+        -76,
+        16,
+        19,
+        240,
+        -3,
+        39,
+        -34,
+        251
+      ],
+      "sha256": "387577a476995375d87eb79b1236964f33875751727a35ee05145b45c49cfc9f"
+    },
+    {
+      "preferred_va": "0x141c49028",
+      "source_int16_row": [
+        346,
+        -125,
+        35,
+        -48,
+        357,
+        -53,
+        7,
+        -117,
+        366
+      ],
+      "sha256": "1e217bd06fccf4f4e019b3591aa1c0ab0b7727ddb79aa03e6b9e0ecaf2ef129d"
+    },
+    {
+      "preferred_va": "0x141c49106",
+      "source_int16_row": [
+        313,
+        -72,
+        14,
+        18,
+        239,
+        -1,
+        39,
+        -33,
+        250
+      ],
+      "sha256": "5418a86bb48b116d9590404b0e8a9d59286df225fbbfae7ccd1d1a2ad653ff78"
+    },
+    {
+      "preferred_va": "0x141c49118",
+      "source_int16_row": [
+        343,
+        -120,
+        33,
+        -49,
+        355,
+        -50,
+        7,
+        -115,
+        364
+      ],
+      "sha256": "7162999272b1176ca00390b705a95f0908d6c0a60cddaf9f6036c33e3d00f564"
+    }
+  ],
+  "native_matrix_output_permutation": [
+    8,
+    5,
+    2,
+    7,
+    4,
+    1,
+    6,
+    3,
+    0
+  ],
+  "matrix_scale_divisor": 256,
+  "contrast_code_to_scalar": {
+    "0": 0.7,
+    "1": 0.8,
+    "2": 0.9,
+    "4": 1.125,
+    "5": 1.25,
+    "6": 1.5,
+    "7": 1.7,
+    "8": 1.9,
+    "9": 2.1,
+    "-4": 0.3,
+    "-3": 0.4,
+    "-2": 0.5,
+    "-1": 0.6
+  },
+  "contrast_default": 1.0,
+  "mode_parameter_to_tone_code": [
+    0,
+    1,
+    2,
+    3,
+    0,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    2,
+    1,
+    1,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    3,
+    1,
+    7,
+    8,
+    9,
+    4,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ],
+  "evidence": [
+    "0x140ec8340",
+    "0x140ec7d70",
+    "0x140ec93d0",
+    "0x140f05b00"
+  ],
+  "unverified": [
+    "camera_family codes to actual models",
+    "full image input/output colour spaces",
+    "complete style fidelity"
+  ]
+}

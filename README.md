@@ -10,6 +10,8 @@
 
 [下载 Windows 版](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/latest) · [处理流程与代码入口](docs/PIPELINE.md) · [源码运行与打包](docs/BUILD.md)
 
+[宾得滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/PENTAX-Filters-3.5.11.zip) · [理光 GR IV 滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/RICOH-GR-IV-Filters-3.5.11.zip) · [原厂拆解数据](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/SOOC-Recovered-Color-Data-3.5.11.zip) · [文件清单与导入方法](docs/FILTERS.md)
+
 ## 我们做了什么
 
 ### 把宾得原厂处理接到跨品牌照片上
@@ -18,7 +20,7 @@
 
 - **17 种原厂模式**：Natural、Bright、Portrait、Landscape、MIYABI、Monochrome、Muted、Reversal、Bleach Bypass、Radiant、Flat、SATOBI、HARUBENI、KATEN、KYUSHU、FUYUNO、GOLD。
 - **按模式开放参数**：饱和度、色相、明暗调、对比度、高光、阴影、锐度、黑白滤色等，遵循已确认的 DCU 参数调用分支。
-- **四季参数接入**：保留参数的机型来源，春红使用 K-1 II 参数，夏天、九秋和冬野使用 K-3 III 参数。
+- **四季参数接入**：程序按输入机型选择 K-1、K-1 II 或 K-3 III 参数银行，跨品牌 RGB 使用 K-1 参数银行。
 - **两条输入路径**：未修改的 PEF 全尺寸处理走原厂 RAW 入口；其他品牌 RAW 先用 LibRaw 解码，再通过 RGB16 兼容输入进入 DCU。JPEG、PNG、TIFF 等也可以用。
 - **把处理放到后台**：界面、原厂计算、AI 降噪分开；原厂进程出错时结束当前任务，主窗口保留。
 

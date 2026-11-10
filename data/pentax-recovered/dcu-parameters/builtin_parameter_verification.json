@@ -1,0 +1,13 @@
+{
+  "source": {
+    "image_base": "0x7ff7a42c0000",
+    "sha256": "d55ec396ce9c93a3e61e83e2ed91f774787a16f32de9ea3a9cdd4fee9e75d387"
+  },
+  "scope": "Parameter selectors only, not full style rendering",
+  "matrix_cases": 6486,
+  "monochrome_cases": 24,
+  "contrast_cases": 62,
+  "all_outputs_bitwise_equal": true,
+  "dll_sha256": "f9d7525d440d8295e076ae36b57b32753912b3b641120a2cb411eb6b9cb4e23b",
+  "pass": true
+}

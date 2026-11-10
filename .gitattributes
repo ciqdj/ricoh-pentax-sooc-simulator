@@ -14,3 +14,4 @@ src/data/** -text
 src/native-data/** -text
 src/builtin-luts/** -text
 src/gr4_core.c -text
+data/pentax-recovered/** -text
