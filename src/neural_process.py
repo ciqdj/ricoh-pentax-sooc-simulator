@@ -6,7 +6,6 @@ import numpy as np
 from temp_storage import temporary_directory,subprocess_environment
 
 _child=None;_messages=None;_storage=None;_lock=threading.Lock();_lifecycle=threading.RLock()
-_cpu_after_crash=set()
 
 
 class WorkerExited(RuntimeError):
@@ -141,7 +140,7 @@ def _start():
         threading.Thread(target=read,daemon=True,name='AIDenoiseMessages').start()
         return child,messages
 
-def _infer_once(rgb,model,mode,cancelled,progress,on_status,variant=None):
+def _infer_once(rgb,model,mode,cancelled,progress,on_status,variant=None,skip_devices=()):
     _cancelled(cancelled)
     if progress:progress('准备模型预热…' if rgb is None else '正在准备 AI 图像数据…')
     with temporary_directory((0 if rgb is None else rgb.nbytes*2)+64*1024*1024,prefix='photo-ai-job-') as folder:
@@ -154,6 +153,7 @@ def _infer_once(rgb,model,mode,cancelled,progress,on_status,variant=None):
         try:
             try:
                 child.stdin.write(json.dumps({'job':job,'work':str(work),'model':model,'mode':mode,'variant':variant,
+                    'skip_devices':list(skip_devices),
                     'operation':'warmup' if rgb is None else 'infer'})+'\n');child.stdin.flush()
             except (BrokenPipeError,OSError):
                 if child.poll() is not None:raise WorkerExited(child,last_status) from None
@@ -211,11 +211,18 @@ def infer(rgb,model,mode,cancelled=None,progress=None,on_status=None):
         _cancelled(cancelled)
         import gpu_compute
         gpu_compute.set_external_busy(True);busy=True
-        selected='cpu' if model in _cpu_after_crash else mode
+        selected=mode
         variant=None;recovery=None
-        for attempt in range(2):
+        from neural_devices import adapter_key,priority_rows
+        # Each native GPU exit quarantines one device/profile before the next
+        # worker starts. Leave room to reach every configured GPU and CPU.
+        try:attempts=max(2,len(priority_rows())) if selected=='auto' else 1
+        except (OSError,RuntimeError):attempts=2
+        skip_devices=set()
+        for attempt in range(attempts):
             try:
-                result,info=_infer_once(rgb,model,selected,cancelled,progress,on_status,variant)
+                result,info=_infer_once(rgb,model,selected,cancelled,progress,on_status,variant,
+                                        skip_devices)
                 if recovery:
                     info=dict(info,fallback_kind='worker_exit',fallback_reason=recovery)
                 return result,info
@@ -223,12 +230,16 @@ def infer(rgb,model,mode,cancelled=None,progress=None,on_status=None):
                 _record_exit(exc,model)
                 native_gpu=(exc.exit_code is not None and (exc.exit_code & 0x80000000)
                             and exc.status.get('provider')=='DmlExecutionProvider')
-                if attempt or selected=='cpu' or not native_gpu:raise
+                if attempt+1>=attempts or selected=='cpu' or not native_gpu:raise
                 _cancelled(cancelled)
-                _cpu_after_crash.add(model);selected='cpu'
+                adapter=exc.status.get('adapter')
+                if adapter:skip_devices.add(adapter.get('key') or adapter_key(adapter))
+                selected='auto' if adapter else 'cpu'
                 if exc.status.get('model')==model:variant=exc.status.get('variant','base')
-                recovery='GPU 后台异常（'+exc.code_text+'），已改用同一模型的 CPU 处理'
-                if on_status:on_status({'model':model,'backend':'CPU','phase':'recovering_backend',
+                recovery=('GPU 后台异常（'+exc.code_text+'），已跳过故障设备并按优先级重试'
+                          if adapter else 'GPU 后台异常（'+exc.code_text+'），设备信息不可用，改用 CPU 处理')
+                fallback_backend='按优先级重试' if adapter else 'CPU'
+                if on_status:on_status({'model':model,'backend':fallback_backend,'phase':'recovering_backend',
                     'fallback_kind':'worker_exit','fallback_reason':recovery,'eta_seconds':None})
                 if progress:progress(recovery+'…')
     finally:
@@ -244,7 +255,7 @@ def worker_main():
         faulthandler.enable(file=sys.stderr)
     except (OSError,ValueError,AttributeError):pass
     os.environ['PHOTO_AI_WORKER']='1'
-    import denoise,gpu_compute
+    import denoise
     from native_backend import RenderCancelled
     def send(value):print(json.dumps(value,ensure_ascii=True),flush=True)
     def snapshot():
@@ -257,16 +268,20 @@ def worker_main():
     for line in sys.stdin:
         source=None;clean=None;job=None;response=None;job_started=time.monotonic()
         try:
-            request=json.loads(line);job=request.get('job');work=Path(request['work']);gpu_compute.set_mode(request['mode'])
+            request=json.loads(line);job=request.get('job');work=Path(request['work'])
             def cancelled():return (work/'cancel').exists()
             if request.get('operation')=='warmup':
                 if os.name=='nt':
                     import ctypes as C
                     C.windll.kernel32.SetPriorityClass(C.windll.kernel32.GetCurrentProcess(),0x4000)
-                denoise.session(request['model'],cancelled=cancelled,progress=progress)
+                denoise.session(request['model'],force_cpu=request.get('mode')=='cpu',
+                                cancelled=cancelled,progress=progress,
+                                skip_devices=request.get('skip_devices',()))
             else:
                 source=np.load(work/'input.npy',mmap_mode='r',allow_pickle=False)
-                clean=denoise.apply(source,1.,cancelled,progress,model=request['model'],variant=request.get('variant'))
+                clean=denoise.apply(source,1.,cancelled,progress,model=request['model'],
+                                    variant=request.get('variant'),force_cpu=request.get('mode')=='cpu',
+                                    skip_devices=request.get('skip_devices',()))
                 _cancelled(cancelled)
                 denoise.report_phase('writing_result',eta_seconds=None)
                 progress('正在传回降噪结果…')

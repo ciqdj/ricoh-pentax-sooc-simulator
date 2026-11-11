@@ -11,6 +11,8 @@ from app_paths import ROOT
 
 P=C.c_void_p;U=C.c_uint;S=C.c_size_t;Q=C.c_ulonglong;I=C.c_int
 _lock=threading.RLock();_backend=None;_attempted=False;_mode='auto';_external_busy=False
+_background_warmup=False
+_warmup_guard=threading.Lock();_warmup_thread=None
 _state={'state':'waiting','device':'','reason':'尚未检测','devices':[]}
 
 
@@ -30,7 +32,25 @@ def set_external_busy(busy):
     the reservation starts, with no user mode changes or cross-process races.
     """
     global _external_busy
+    if _background_warmup:
+        # Startup probing has no right to hold up a requested AI photo job.
+        _external_busy=bool(busy)
+        return
     with _lock:_external_busy=bool(busy)
+
+
+def start_background_warmup():
+    global _background_warmup,_warmup_thread
+    with _warmup_guard:
+        if _warmup_thread is not None and _warmup_thread.is_alive():return _warmup_thread
+        _background_warmup=True
+        def run():
+            global _background_warmup
+            try:warmup()
+            finally:_background_warmup=False
+        _warmup_thread=threading.Thread(target=run,name='ColorGPUPreparation',daemon=True)
+        _warmup_thread.start()
+        return _warmup_thread
 
 
 def _check(code):
@@ -211,14 +231,25 @@ def warmup():
         if _attempted:return _backend
         _attempted=True;_state={'state':'checking','device':'','reason':'正在校验显卡计算结果','devices':[]}
         devices=[];candidates=[]
+        def interrupted(force=False):
+            global _attempted,_state
+            if not force and not _external_busy:return False
+            for _,candidate in candidates:candidate.close()
+            candidates.clear();_attempted=False
+            _state={'state':'waiting','device':'','reason':'等待照片处理完成','devices':[]}
+            return True
         try:
             api=OpenCL();devices=api.devices()
             _state['devices']=[{k:v for k,v in row.items() if k!='handle'} for row in devices]
             for info in devices:
+                if interrupted():return None
                 if not info['fp64']:continue
                 device=None
                 try:
                     device=Device(api,info);_self_test(device)
+                    if _external_busy:
+                        device.close()
+                        interrupted(force=True);return None
                     sample=np.random.default_rng(481).integers(0,65536,(384,512,3),dtype=np.uint16)
                     start=time.perf_counter();device.gr4(sample,'CrossProcess',1)
                     candidates.append((time.perf_counter()-start,device))
@@ -226,6 +257,7 @@ def warmup():
                     if device:device.close()
                     _state['reason']=type(exc).__name__+': '+str(exc)[:180]
             if candidates:
+                if interrupted():return None
                 candidates.sort(key=lambda item:item[0]);selected=candidates[0][1]
                 for _,device in candidates[1:]:device.close()
                 from gr4_accel import render_u16
@@ -252,6 +284,12 @@ def warmup():
 def _run(operation,*args,**kwargs):
     global _backend
     if _mode=='cpu' or _external_busy or os.environ.get('PHOTO_GPU_DISABLE')=='1':return None
+    # A first-run GPU check is speculative. Photo colour work uses its exact
+    # CPU path while that check runs instead of waiting on its long lock.
+    if _background_warmup or _state['state']=='checking':return None
+    if not _attempted:
+        start_background_warmup()
+        return None
     device=warmup()
     if device is None:return None
     from native_backend import RenderCancelled

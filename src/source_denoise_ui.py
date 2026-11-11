@@ -65,7 +65,7 @@ class SourceDenoiseMixin:
             return None
         settings = self.current_photo_denoise()
         try:
-            return key_for(path, settings['denoise_model'], gpu_compute.status()['mode'])
+            return key_for(path, settings['denoise_model'], 'auto')
         except OSError:
             return None
 
@@ -111,7 +111,7 @@ class SourceDenoiseMixin:
 
     def source_token(self, snapshot=None):
         path, result, amount = snapshot or self.source_snapshot()
-        return (str(path), result.key if result is not None else None,
+        return (str(path), (result.key,getattr(result,'run_id',id(result))) if result is not None else None,
                 amount if result is not None else 0.)
 
     @staticmethod
@@ -132,7 +132,6 @@ class SourceDenoiseMixin:
         if getattr(self,'editor_enabled',False):
             snapshot=self.source_snapshot();token=self.source_token(snapshot)
             if token!=self._source_input_token:
-                self._source_input_token=token
                 self.request_render()
             return
         from filter_catalog import renderer_available
@@ -197,7 +196,7 @@ class SourceDenoiseMixin:
             self.denoise_amount.set(100)
         try:
             key = self.photo_denoise_store.request(self.current_path, settings['denoise_model'],
-                                                   gpu_compute.status()['mode'])
+                                                   'auto')
             self.source_denoise_keys.add(key)
             self.denoise_error = ''
             self._source_status_stamp = None
@@ -208,6 +207,45 @@ class SourceDenoiseMixin:
         except Exception as exc:
             self.denoise_error = str(exc)
             self.denoise_state.set('降噪未能开始：' + str(exc))
+
+    def _clear_denoise_result(self, key):
+        self.photo_denoise_store.discard(key)
+        if self.denoise_result is not None and self.denoise_result['key']==key:
+            self.denoise_result=None
+        self.source_denoise_keys.discard(key)
+        self._source_completed_keys.discard(key)
+        self._source_status_stamp=None
+        if self.denoise_detail is not None:self.denoise_detail.clear_input_cache()
+        self.refresh_source_render()
+
+    def regenerate_denoise(self):
+        if not self.current_path or self.busy:return
+        settings=self.current_photo_denoise()
+        if not settings['denoise'] or (getattr(self,'editor_enabled',False) and self.editor_state['denoise']['kind']!='ai'):
+            return
+        key=self.denoise_key()
+        if key is None:return
+        self._clear_denoise_result(key)
+        self.denoise_state.set('已清除旧降噪结果，正在重新生成…')
+        self.start_denoise()
+
+    def discard_denoise(self):
+        if not self.current_path or self.busy:return
+        key=self.denoise_key()
+        if key is None:return
+        if getattr(self,'editor_enabled',False) and self.editor_state['denoise']['kind']=='ai':
+            from copy import deepcopy
+            state=deepcopy(self.editor_state)
+            state['denoise']['kind']='off'
+            if not self.editor_record(state,'丢弃降噪结果'):return
+        elif not getattr(self,'editor_enabled',False):
+            settings=dict(self.current_photo_denoise(),denoise=0.)
+            self.photo_denoise_values[self.photo_settings_key()]=settings
+            self.denoise_amount.set(0)
+        self._clear_denoise_result(key)
+        self.denoise_error=''
+        self.denoise_state.set('已丢弃降噪结果')
+        self.refresh_denoise_controls()
 
     def cancel_denoise(self):
         current = self.denoise_key()
@@ -227,11 +265,14 @@ class SourceDenoiseMixin:
         state = self.current_denoise_status()
         active = state['state'] in ACTIVE
         result = self.current_denoise()
+        ai_selected=not getattr(self,'editor_enabled',False) or self.editor_state['denoise']['kind']=='ai'
         self.denoise_enabled.set(bool(amount))
         self.denoise_label.set('DCU 原厂' if getattr(self,'editor_enabled',False) and self.editor_state['denoise']['kind']=='native' else '关闭' if not amount else
                               f'结果混合 {amount:.0f}%' + ('（已应用）' if result else ''))
-        self.denoise_start_button.configure(state='normal' if self.current_path and not self.busy
-                                            and amount and not active and result is None else 'disabled')
+        can_act=bool(self.current_path and not self.busy and ai_selected)
+        self.denoise_start_button.configure(state='normal' if can_act and amount and not active and result is None else 'disabled')
+        self.denoise_regenerate_button.configure(state='normal' if can_act and amount and not active and result is not None else 'disabled')
+        self.denoise_discard_button.configure(state='normal' if can_act and (result is not None or state['state']!='missing') else 'disabled')
         self.denoise_cancel_button.configure(state='normal' if not self.denoise_idle() else 'disabled')
         self.denoise_combo.configure(state='disabled' if self.busy else 'readonly')
 

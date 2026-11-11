@@ -730,9 +730,7 @@ def save(source, destination, key, exposure=0, jpeg_quality=98, bit_depth=16,
          controls=None, amount=1, progress=None, cancelled=None,
          post_balance=(0, 0), post_settings=None):
     """Standard photo backend API, full resolution and stripped personal metadata."""
-    from photo_formats import ICC, RASTER_EXT, encode_png, resolve_format
-    from PIL import Image
-    import tifffile
+    from photo_formats import RASTER_EXT, resolve_format, capture_for_output, save_raster
     from postprocess import process as post_process, annotate
 
     source = Path(source).resolve()
@@ -760,25 +758,16 @@ def save(source, destination, key, exposure=0, jpeg_quality=98, bit_depth=16,
         if keep_alpha:
             channel = np.floor(np.clip(alpha, 0, 1) * (65535 if bits == 16 else 255) + .5).astype(rgb.dtype)
             rgb = np.concatenate([rgb, channel[..., None]], axis=2)
+        exif,capture=capture_for_output(source,rgb.shape)
         destination.parent.mkdir(parents=True, exist_ok=True)
         created = sidecar_created = False
         try:
             _cancel(cancelled)
-            with destination.open('xb') as out:
-                created = True
-                if fmt == 'tiff':
-                    tifffile.imwrite(out, rgb, photometric='rgb', compression='deflate', iccprofile=ICC,
-                                     extrasamples='unassalpha' if keep_alpha else None, metadata=None, software=False)
-                elif fmt == 'png':
-                    out.write(encode_png(rgb, b''))
-                elif fmt == 'jpeg':
-                    Image.fromarray(rgb).save(out, 'JPEG', quality=jpeg_quality, subsampling=0, icc_profile=ICC)
-                elif fmt == 'webp':
-                    Image.fromarray(rgb).save(out, 'WEBP', lossless=True, exact=True, icc_profile=ICC)
-                else:
-                    Image.fromarray(rgb).save(out, 'BMP')
+            save_raster(destination,rgb,fmt,jpeg_quality,keep_alpha,exif)
+            created=True
             _cancel(cancelled)
-            report.update(output_format=fmt, output_bits=bits, alpha_retained=keep_alpha, lossless_encoding=fmt != 'jpeg')
+            report.update(output_format=fmt, output_bits=bits, alpha_retained=keep_alpha,
+                          lossless_encoding=fmt != 'jpeg',capture_metadata=capture)
             with sidecar.open('x', encoding='utf-8') as out:
                 sidecar_created = True
                 json.dump(report, out, ensure_ascii=False, indent=2, allow_nan=False)

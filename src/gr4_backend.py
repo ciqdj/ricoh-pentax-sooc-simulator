@@ -5,7 +5,7 @@ import threading
 import numpy as np
 import tifffile
 from PIL import Image
-from photo_formats import read_photo,ICC,encode_png,resolve_format,RASTER_EXT
+from photo_formats import read_photo,resolve_format,RASTER_EXT,capture_for_output,save_raster
 from color_math import srgb_encode
 from native_backend import RenderCancelled
 from gr4_renderer import render,validate_controls,control_values
@@ -86,16 +86,12 @@ def save(source,destination,key,exposure=0,jpeg_quality=98,bit_depth=16,controls
     if keep_alpha:
         channel=alpha if bits==16 else ((alpha.astype(np.uint32)+128)//257).astype(np.uint8)
         rgb=np.concatenate([rgb,channel[...,None]],axis=2)
+    exif,capture=capture_for_output(source,rgb.shape)
     destination.parent.mkdir(parents=True,exist_ok=True);created=False;sidecar_created=False
     try:
-        with destination.open('xb') as out:
-            created=True
-            if fmt=='tiff':tifffile.imwrite(out,rgb,photometric='rgb',compression='deflate',iccprofile=ICC,extrasamples='unassalpha' if keep_alpha else None,metadata=None,software=None)
-            elif fmt=='png':out.write(encode_png(rgb,b''))
-            elif fmt=='jpeg':Image.fromarray(rgb).save(out,'JPEG',quality=jpeg_quality,subsampling=0,icc_profile=ICC)
-            elif fmt=='webp':Image.fromarray(rgb).save(out,'WEBP',lossless=True,exact=True,icc_profile=ICC)
-            else:Image.fromarray(rgb).save(out,'BMP')
-        report.update(output_format=fmt,output_bits=bits,alpha_retained=keep_alpha,lossless_encoding=fmt!='jpeg')
+        save_raster(destination,rgb,fmt,jpeg_quality,keep_alpha,exif);created=True
+        report.update(output_format=fmt,output_bits=bits,alpha_retained=keep_alpha,
+                      lossless_encoding=fmt!='jpeg',capture_metadata=capture)
         with sidecar.open('x',encoding='utf-8') as out:sidecar_created=True;json.dump(report,out,ensure_ascii=False,indent=2)
         return report
     except Exception:

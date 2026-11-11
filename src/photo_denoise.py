@@ -72,6 +72,8 @@ class PreparedPhoto:
     notes:tuple
     seconds:float
     linear_rgb:object=None
+    exif:bytes=b''
+    metadata:dict|None=None
 
     @property
     def size(self):return self.rgb.shape[1],self.rgb.shape[0]
@@ -81,6 +83,7 @@ class PhotoDenoiseResult:
     def __init__(self,key,prepared,rgb,path,storage,seconds,backend,timings):
         self.key=key;self.prepared=prepared;self.source=prepared.rgb
         self.rgb=rgb;self.clean=rgb;self.alpha=prepared.alpha
+        self.run_id=uuid.uuid4().hex
         self.path=Path(path);self.seconds=seconds;self.backend=dict(backend)
         self.notes=prepared.notes;self.timings=dict(timings);self.size=prepared.size
         # No explicit cache eviction closes a held Result's file. External
@@ -143,10 +146,11 @@ def _decode(identity,cancelled,progress):
         elif alpha.dtype!=np.uint16:raise ValueError('不支持的透明通道位深')
         alpha.flags.writeable=False
     rgb.flags.writeable=False
-    return PreparedPhoto(identity,rgb,alpha,tuple(photo.notes),time.monotonic()-started,linear_rgb)
+    return PreparedPhoto(identity,rgb,alpha,tuple(photo.notes),time.monotonic()-started,
+                         linear_rgb,photo.exif,photo.metadata)
 
 
-def _write_tiff(path,rgb,alpha,cancelled=None,clean=None,amount=1.):
+def _write_tiff(path,rgb,alpha,cancelled=None,clean=None,amount=1.,exif=b''):
     """Write one standalone TIFF without a second full RGBA/blend array."""
     import tifffile
     from photo_formats import ICC
@@ -165,6 +169,11 @@ def _write_tiff(path,rgb,alpha,cancelled=None,clean=None,amount=1.):
             if alpha is not None:target[top:bottom,:,3]=alpha[top:bottom]
         target.flush();_cancelled(cancelled)
     finally:target._mmap.close()
+    if exif:
+        from PIL import Image
+        from photo_formats import write_tiff_exif
+        parsed=Image.Exif();parsed.load(exif)
+        if not write_tiff_exif(path,parsed):raise RuntimeError('降噪工作副本的拍摄参数写入失败')
 
 
 @contextmanager
@@ -184,7 +193,7 @@ def working_input(result,amount_percent=100,cancelled=None):
     with temporary_directory(required,prefix='photo-input-blend-') as folder:
         path=Path(folder)/'input.tif'
         _write_tiff(path,result.source,result.alpha,cancelled,
-                    result.rgb if amount else None,amount/100)
+                    result.rgb if amount else None,amount/100,result.prepared.exif)
         _cancelled(cancelled);_assert_current(result.key.identity)
         yield path
 
@@ -291,6 +300,19 @@ class PhotoDenoiseStore:
                 return {'source':result.source[y:y+hh,x:x+ww], 'clean':result.rgb[y:y+hh,x:x+ww],
                         'bounds':(x,y,ww,hh),'center':(.5,.5),'full':True}
             return preview
+
+    def discard(self,key):
+        """Forget one result and its preview without invalidating in-use readers."""
+        if not isinstance(key,PhotoKey):raise ValueError('只能丢弃照片降噪结果')
+        with self._changed:
+            task=self._tasks.pop(key,None)
+            if task is not None:self._cancel_task(task,'discarded')
+            result=self._results.pop(key,None)
+            preview=self._previews.pop(key,None)
+            if self._selected==key:self._selected=None
+            self._changed.notify_all()
+        # A render/export holding Result keeps its TIFF alive until it exits.
+        return result is not None or preview is not None or task is not None
 
     @staticmethod
     def _task_status(task,now):
@@ -423,14 +445,21 @@ class PhotoDenoiseStore:
 
     def _bytes(self):
         arrays={}
+        def retain(array):
+            if array is None:return
+            # Count the owning allocation once, including arrays kept by a
+            # Result after its PreparedPhoto left the source LRU.
+            while isinstance(array.base,np.ndarray):array=array.base
+            arrays[id(array)]=array
+        def prepared(photo):
+            for array in (photo.rgb,photo.alpha,photo.linear_rgb):retain(array)
         for photo in self._sources.values():
-            arrays[id(photo.rgb)]=photo.rgb
-            if photo.alpha is not None:arrays[id(photo.alpha)]=photo.alpha
+            prepared(photo)
         for result in self._results.values():
-            for array in (result.source,result.rgb,result.alpha):
-                if array is not None:arrays[id(array)]=array
+            prepared(result.prepared)
+            for array in (result.source,result.rgb,result.alpha):retain(array)
         for preview in self._previews.values():
-            for array in (preview['source'],preview['clean']):arrays[id(array)]=array
+            for array in (preview['source'],preview['clean']):retain(array)
         return sum(array.nbytes for array in arrays.values())
 
     def _trim(self,protect=None):
@@ -518,7 +547,7 @@ class PhotoDenoiseStore:
         storage=temporary_directory(required,prefix='photo-input-denoise-')
         try:
             path=Path(storage.name)/'denoised-input.tif';pending=Path(storage.name)/'pending.tif';write_started=time.monotonic()
-            _write_tiff(pending,rgb,prepared.alpha,cancel)
+            _write_tiff(pending,rgb,prepared.alpha,cancel,exif=prepared.exif)
             _cancelled(cancel);_assert_current(key.identity)
             os.replace(pending,path)
             return PhotoDenoiseResult(key,prepared,rgb,path,storage,time.monotonic()-started,backend,

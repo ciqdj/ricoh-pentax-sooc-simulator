@@ -44,11 +44,11 @@ def before_infer(model,mode):
 
 def start(model=None,mode='auto',delay=2.):
     global _thread,_stop,_status
-    if os.environ.get('PHOTO_PREWARM_DISABLE')=='1':return
+    if os.environ.get('PHOTO_PREWARM_DISABLE')=='1':return False
     model=model or preference()
-    if model not in ('nafnet','restormer') or mode not in ('auto','cpu'):return
+    if model not in ('nafnet','restormer') or mode not in ('auto','cpu'):return False
     with _guard:
-        if _thread is not None and _thread.is_alive():return
+        if _thread is not None and _thread.is_alive():return False
         _stop=threading.Event();cancel=_stop
         _status={'state':'queued','model':model,'mode':mode,'name':'模型预热','task_id':'ai-prewarm',
                  'stage':'等待启动完成','elapsed':0.,'eta_seconds':None}
@@ -75,10 +75,10 @@ def start(model=None,mode='auto',delay=2.):
         except RenderCancelled:update(state='cancelled',stage='预热已停止')
         except host.WorkerExited as exc:
             host._record_exit(exc,model)
-            if exc.status.get('provider')=='DmlExecutionProvider':host._cpu_after_crash.add(model)
             update(state='failed',stage='模型预热未完成；实际任务将重新准备')
         except Exception as exc:update(state='failed',stage='模型预热未完成',error=type(exc).__name__)
         finally:
             if busy:gpu_compute.set_external_busy(False)
             if acquired:host._lock.release()
     _thread=threading.Thread(target=run,name='AIStartupPreparation',daemon=True);_thread.start()
+    return True

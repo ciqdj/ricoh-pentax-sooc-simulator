@@ -18,10 +18,11 @@ def signal_ready():
     finally:kernel.CloseHandle(event)
 
 
-def after_first_frame(root):
+def after_first_frame(root,on_ready=None):
     # The first timer follows the initial layout/map/paint idle work. A launch
     # that is still mapping keeps the splash, not a guessed percentage.
     if not root.winfo_viewable():
-        root.after(40,lambda:after_first_frame(root));return
+        root.after(40,lambda:after_first_frame(root,on_ready));return
     root.update_idletasks()
     signal_ready()
+    if on_ready is not None:root.after(0,on_ready)
