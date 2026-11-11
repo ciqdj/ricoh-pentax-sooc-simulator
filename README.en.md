@@ -8,7 +8,7 @@ English · [Simplified Chinese](README.md)
 
 Open a RAW or a finished photo and try Pentax's four seasonal looks, Reversal Film, or Ricoh GR IV Cross Processing. The project makes those color choices available in one Windows editor. It grew out of work on Digital Camera Utility 5, the Pentax K-3 Mark III firmware, and community research on the Ricoh GR IV.
 
-[Download the standalone Windows EXE](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.13/RICOH-PENTAX-SOOC-Simulator-3.5.13-Standalone.exe) · [Release notes](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/tag/v3.5.13) · [Pipeline](docs/PIPELINE.md) · [Build instructions](docs/BUILD.md) · [Disclaimer](DISCLAIMER.md)
+[Download the standalone Windows EXE](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.13/RICOH-PENTAX-SOOC-Simulator-3.5.13.exe) · [Release notes](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/tag/v3.5.13) · [Pipeline](docs/PIPELINE.md) · [Build instructions](docs/BUILD.md) · [Disclaimer](DISCLAIMER.md)
 
 Version 3.5.13 adds a language menu in the top bar. Select **English** to change the interface. The app remembers your selection.
 
