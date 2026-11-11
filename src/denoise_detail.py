@@ -197,7 +197,7 @@ class DenoiseDetail(ttk.Frame):
         self.canvas.pack(fill='x',pady=4)
         self.canvas.bind('<Configure>',lambda e:self.changed())
         self.canvas.bind('<Button-1>',self.down);self.canvas.bind('<B1-Motion>',self.drag)
-        self.canvas.bind('<ButtonRelease-1>',lambda e:setattr(self,'drag_origin',None))
+        self.canvas.bind('<ButtonRelease-1>',self.release)
         self.canvas.bind('<MouseWheel>',self.wheel)
         ttk.Label(self,textvariable=self.note,wraplength=252,style='Hint.TLabel').pack(fill='x')
         from ui_controls import Tooltip
@@ -211,10 +211,11 @@ class DenoiseDetail(ttk.Frame):
         self.display_processed_only=False
         self.closed=False;self.needs_detail=False;self.target=None;self.result=None;self.result_key=None
         self.deadline=0.;self.failed_key=None;self.last_draw=None;self.drag_origin=None;self.bitmap=None
-        self._base_key=None;self._size=None;self._last_note=''
+        self._base_key=None;self._size=None;self._last_note='';self._pan_source=None;self._pan_processed_only=False;self._pan_active=False;self._spin_angle=0;self._spin_after=None;self._spin_pending=False;self._pan_painting=False;self._spin_deadline=0.
         self.native_reference=None;self.native_reference_key=None
         self.running_kind=None;self.input_preview=None;self.input_preview_key=None
         self.failed_message='';self._mode_serial=0;self._input_context_key=None;self._input_task_id=None
+        self._input_revision=0
         self.placeholder('选择照片后调节降噪强度')
 
     def geometry_values(self):
@@ -235,6 +236,12 @@ class DenoiseDetail(ttk.Frame):
     def changed(self):
         self.stop();self.stop_display();self.target=None;self.deadline=time.monotonic()+.12;self.last_draw=None
 
+    def clear_input_cache(self):
+        self.changed();self._input_revision+=1;self._input_context_key=None;self._input_task_id=None
+        self.input_preview=None;self.input_preview_key=None;self.failed_key=None;self.failed_message=''
+        self.result=None;self.result_key=None
+        self.placeholder('正在准备输入降噪对比…')
+
     def wheel(self,event):
         options=('100%','200%','400%');index=options.index(self.zoom.get())
         self.zoom.set(options[max(0,min(2,index+(1 if event.delta>0 else -1)))])
@@ -247,7 +254,76 @@ class DenoiseDetail(ttk.Frame):
         if self.drag_origin is None or self._size is None:return
         x,y,center=self.drag_origin;_,_,scale,_=self.geometry_values();w,h=self._size
         self.center=(max(0,min(1,center[0]-(event.x-x)/scale/w)),max(0,min(1,center[1]-(event.y-y)/scale/h)))
+        # AUDIT-P26: drag against the original pixels only. Cropping the source is a
+        # slice plus a nearest resize, so the crop follows the pointer exactly and no
+        # per-motion basic/mixer/balance work runs. The right half shows the same
+        # crop with a progress marker until release triggers the exact comparison.
+        if self._pan_source is not None and self._quick_pan():return
         self.changed()
+
+    def release(self,event=None):
+        was=self.drag_origin is not None
+        self.drag_origin=None
+        if not was:return
+        # Keep the arc running until the exact comparison arrives, so the right
+        # half visibly means "still working" instead of silently showing stale pixels.
+        self._spin_pending=True;self._spin_deadline=time.monotonic()+120.
+        self._pan_active=False
+        self.changed()
+
+    def _quick_pan(self):
+        # Draw the source crop immediately for both halves.
+        try:
+            source=self._pan_source
+            width,height,scale,size=self.geometry_values()
+            bx,by,bw,bh=crop_bounds(source.shape,self.center,size)
+            crop=source[by:by+bh,bx:bx+bw]
+            values=((crop.astype(np.uint32)+128)//257).astype(np.uint8) if crop.dtype==np.uint16 else crop
+            dest=(max(1,round(bw*scale)),max(1,round(bh*scale)))
+            frame=Image.fromarray(values).resize(dest,Image.Resampling.NEAREST)
+            out=Image.new('RGB',(width,height),'#151517')
+            top=(height-dest[1])//2;pane=width//2
+            if self._pan_processed_only:
+                out.paste(frame,((width-dest[0])//2,top))
+            else:
+                out.paste(frame,((pane-dest[0])//2,top))
+                out.paste(frame,(pane+1+(width-pane-1-dest[0])//2,top))
+            self._pan_active=True
+            self._pan_painting=True
+            try:self.paint(out,processed_only=self._pan_processed_only)
+            finally:self._pan_painting=False
+            if not self._pan_processed_only:self._draw_spin()
+            return True
+        except Exception:
+            return False
+
+    def _stop_spin(self):
+        if self._spin_after is not None:
+            try:self.after_cancel(self._spin_after)
+            except tk.TclError:pass
+            self._spin_after=None
+        try:self.canvas.delete('spin')
+        except tk.TclError:pass
+
+    def _draw_spin(self):
+        # Placeholder arc over the right half while the exact crop is pending.
+        if not (self._pan_active or self._spin_pending) or self.closed:return
+        if self._spin_pending and not self._pan_active and time.monotonic()>self._spin_deadline:
+            self._spin_pending=False;self._stop_spin();return
+        try:
+            width=self.canvas.winfo_width();height=self.canvas.winfo_height()
+        except tk.TclError:
+            return
+        if width<20 or height<20:return
+        try:self.canvas.delete('spin')
+        except tk.TclError:return
+        cx=width*3//4;cy=height//2;r=14
+        self.canvas.create_arc(cx-r,cy-r,cx+r,cy+r,start=self._spin_angle,extent=260,
+            style='arc',outline='#ffffff',width=3,tags='spin')
+        self.canvas.create_text(cx,cy+26,text='正在降噪',fill='#d0d0d5',tags='spin')
+        self._spin_angle=(self._spin_angle+28)%360
+        try:self._spin_after=self.after(90,self._draw_spin)
+        except tk.TclError:self._spin_after=None
 
     def placeholder(self,text):
         self.stop_display()
@@ -268,6 +344,8 @@ class DenoiseDetail(ttk.Frame):
             self.display_target is None or self.last_draw==self.display_target or self.display_failed==self.display_target)
 
     def queue_display(self,key,source,result,amount,alpha,bounds,settings,balance,geometry,processed_only=False):
+        # AUDIT-P26: keep the source so a drag can crop it without recomputing anything.
+        self._pan_source=source;self._pan_processed_only=bool(processed_only)
         if key!=self.display_target:
             if self.display_cancel:self.display_cancel.set()
             self.display_target=key;self.display_failed=None
@@ -406,7 +484,7 @@ class DenoiseDetail(ttk.Frame):
             self.note.set('正在准备输入照片…');return
         source=prepared.rgb;alpha=prepared.alpha
         self._size=(source.shape[1],source.shape[0]);geometry=self.geometry_values()
-        bounds=crop_bounds(source.shape,self.center,geometry[3]);target=('input',key,bounds)
+        bounds=crop_bounds(source.shape,self.center,geometry[3]);target=('input',key,self._input_revision,bounds)
         if target!=self.target:
             self.stop();self.target=target;self.last_draw=None
             if self.failed_key!=target:self.failed_key=None;self.failed_message=''
@@ -418,7 +496,7 @@ class DenoiseDetail(ttk.Frame):
             result_stamp=id(record)
         elif self.input_preview_key==target:
             result=self.input_preview;result_stamp=id(result['clean'])
-        elif self.input_preview_key is not None and self.input_preview_key[:2]==target[:2]:
+        elif self.input_preview_key is not None and self.input_preview_key[:3]==target[:3]:
             result=crop_result(self.input_preview,bounds,source.shape)
             if result is not None:result_stamp=id(self.input_preview['context_clean'])
         if result is None and hasattr(store,'get_preview'):
@@ -536,6 +614,9 @@ class DenoiseDetail(ttk.Frame):
 
 
     def paint(self,out,processed_only=False):
+        # A paint outside _quick_pan is a real result: the pending arc can stop.
+        if not getattr(self,'_pan_painting',False) and getattr(self,'_spin_pending',False):
+            self._spin_pending=False;self._stop_spin()
         width,height=out.size
         self.display_processed_only=bool(processed_only)
         self.heading.set('输入降噪' if self.source_mode=='input' else '原厂降噪')

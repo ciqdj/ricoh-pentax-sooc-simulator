@@ -110,7 +110,10 @@ class TonePanel(ttk.Frame):
         # That echo must not release the point held by the mouse. A different
         # state (history/reset/another photo) still resets the selection.
         if value==self.value:return
-        self.value=value;self.active=None;self.draw_curve();self.draw_hist()
+        self.value=value;self.active=None;self.draw_curve()
+        # AUDIT-P34: the histogram data only changes in set_histogram(). Redrawing
+        # three 1538-argument polylines plus three percentiles on every drag frame
+        # was pure overhead and was the main reason the curve felt heavy.
 
     def set_enabled(self,enabled):self.enabled=enabled
 
@@ -126,7 +129,10 @@ class TonePanel(ttk.Frame):
             scale=max(1,max(np.percentile(a,99.5) for a in self.data['rgb']))
             for channel,data,color in zip(('r','g','b'),self.data['rgb'],('#a35b63','#518569','#527caa')):
                 pts=[0,h-18]
-                for i,v in enumerate(data):pts.extend((i*(w-1)/255,h-18-min(h-22,float(v)/scale*(h-22))))
+                # AUDIT-P34: half resolution is visually identical at 258 px wide and
+                # halves the argument count handed to Tk's create_line.
+                step=2 if len(data)>128 else 1
+                for i in range(0,len(data),step):pts.extend((i*(w-1)/255,h-18-min(h-22,float(data[i])/scale*(h-22))))
                 pts.extend((w,h-18));c.create_line(*pts,fill=color,width=1,tags=('histogram-channel','histogram-'+channel))
             self.summary.configure(text=f'黑场 {self.data["black"]*100:.2f}%    高光 {self.data["white"]*100:.2f}%')
         else:
@@ -165,7 +171,9 @@ class TonePanel(ttk.Frame):
             c.create_line(10+t*(w-20),10,10+t*(w-20),h-10,fill='#363639')
             c.create_line(10,10+t*(h-20),w-10,10+t*(h-20),fill='#363639')
         c.create_line(10,h-10,w-10,10,fill='#5a5a60',dash=(3,3))
-        x=np.linspace(0,1,192);y=interpolate(self.value['points'],x);pts=np.column_stack((10+x*(w-20),10+(1-y)*(h-20))).reshape(-1)
+        # AUDIT-P34: 192 samples across a ~250 px canvas is sub-pixel redundancy; 96
+        # halves the create_line payload with no visible change on the drawn curve.
+        x=np.linspace(0,1,96);y=interpolate(self.value['points'],x);pts=np.column_stack((10+x*(w-20),10+(1-y)*(h-20))).reshape(-1)
         c.create_line(*pts,fill='#e5e5ec',width=2)
         for i,(x,y) in enumerate(self.value['points']):
             x=10+x*(w-20);y=10+(1-y)*(h-20);c.create_oval(x-4,y-4,x+4,y+4,fill='#0a84ff' if i==self.active else '#ededf0',outline='')

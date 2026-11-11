@@ -201,6 +201,23 @@ static DWORD WINAPI start_child(void *parameter) {
 int WINAPI wWinMain(HINSTANCE instance,HINSTANCE previous,LPWSTR unused,int show) {
     wchar_t preview_path[32768];
     wchar_t *args=arguments();quiet=wcsncmp(args,L"--",2)==0;
+    /* AUDIT-P25: a second double-click must not unpack 857 MB again or race
+       the first instance for the same temp workspace. One named mutex, checked
+       before anything is allocated. Command-line workers keep running in
+       parallel on purpose, so the guard only applies to interactive launches. */
+    HANDLE single=NULL;
+    if(!quiet){
+        single=CreateMutexW(NULL,FALSE,L"Local\\PhotoWorkbenchSingleInstance");
+        if(single && GetLastError()==ERROR_ALREADY_EXISTS){
+            MessageBoxW(NULL,
+                launcher_splash_english()
+                    ? L"RICOH & PENTAX SOOC Simulator is already running.\n\nSwitch to the existing window, or close it before starting again."
+                    : L"程序已经在运行中。\n\n请切换到已打开的窗口，或先关闭它再重新启动。",
+                L"RICOH & PENTAX SOOC Simulator",MB_OK|MB_ICONINFORMATION);
+            CloseHandle(single);
+            return 0;
+        }
+    }
     const wchar_t *preview_option=L"--launcher-splash-preview";size_t preview_length=wcslen(preview_option);
     if(!wcsncmp(args,preview_option,preview_length) && (args[preview_length]==L' '||args[preview_length]==L'\t')){
         wchar_t *name=args+preview_length;while(*name==L' '||*name==L'\t')name++;
@@ -262,6 +279,7 @@ cleanup:
     if(may_clean && job->selected && GetFullPathNameW(job->work,32768,owned_root,NULL))clean_owned(owned_root,owned_root,0);
     if(ready)CloseHandle(ready);
     if(job->crypto)CryptReleaseContext(job->crypto,0);
+    if(single){ReleaseMutex(single);CloseHandle(single);single=NULL;}
     int prepare_error=job->error;HeapFree(GetProcessHeap(),0,job);
     int english=launcher_splash_english();
     if(result==12 && prepare_error==PREPARE_CRYPTO_FAILED)return fail(english?L"Could not initialize the file check.":L"无法初始化完整性检查。");

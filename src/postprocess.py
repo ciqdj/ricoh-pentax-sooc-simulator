@@ -1,4 +1,21 @@
 """User-enabled post-filter operations. Neutral settings leave pixels intact."""
+
+# ===========================================================================
+# IMPORT-CYCLE NOTICE  (AUDIT-20261111/18-LOGIC-AUDIT.md)
+#
+# This module is part of 29 import cycles. Some edges below are at MODULE
+# scope; every reverse edge back into this module is FUNCTION-local.
+# The critical reverse edge is native_backend.py:346 (import postprocess
+# inside _native()).
+#
+# DO NOT hoist any reverse edge to module scope. Doing so makes the package
+# fail at import time with:
+#   ImportError: cannot import name X from partially initialized module
+#
+# Prefer importing inside the function that uses it, so the cycle stays
+# broken while the package initialises.
+# ===========================================================================
+
 import math
 import numpy as np
 from PIL import Image

@@ -1,8 +1,4 @@
-"""DXGI properties and scoped AI device failures; never reset GPU drivers.
-
-DirectML device_id is the DXGI EnumAdapters index. Adapter ranking uses actual
-dedicated memory, then a measured workload; marketing names are display-only.
-"""
+"""DXGI adapter discovery, saved AI device order, and scoped device failures."""
 from pathlib import Path
 import ctypes as C
 import json
@@ -15,6 +11,128 @@ import uuid
 _lock = threading.RLock()
 _health = None
 _health_path = None
+CPU_KEY = 'cpu'
+
+
+def adapter_kind(adapter):
+    """Classify DXGI adapters using their reported memory and device family."""
+    vendor = int(adapter.get('vendor', 0))
+    dedicated = int(adapter.get('dedicated', 0))
+    name = str(adapter.get('name', '')).casefold()
+    if vendor == 0x8086:
+        return 'discrete' if 'arc' in name and dedicated > 0 else 'integrated'
+    if vendor == 0x1002 and any(token in name for token in (
+            'radeon(tm) graphics', 'radeon graphics', 'radeon 780m', 'radeon 760m',
+            'radeon 680m', 'radeon 660m', 'radeon 610m', 'vega')):
+        return 'integrated'
+    return 'discrete' if dedicated >= 512 * 1024**2 else 'integrated'
+
+
+def adapter_key(adapter):
+    """Stable, non-personal preference key; the DXGI slot separates twins."""
+    return f"gpu:{identity(adapter)}:{int(adapter.get('id', 0))}"
+
+
+def _priority_path():
+    import app_paths
+    return Path(app_paths.CONFIG) / 'ai-device-priority.json'
+
+
+def default_adapter_order(adapters):
+    rows = [dict(row, kind=adapter_kind(row), key=adapter_key(row)) for row in adapters]
+    return sorted(rows, key=lambda row: (row['kind'] != 'discrete', -row.get('dedicated', 0), row.get('id', 0)))
+
+
+def normalize_order(adapters, saved_order=None):
+    """Merge a saved order with currently detected devices without losing choices."""
+    rows = default_adapter_order(adapters)
+    gpu_keys = [row['key'] for row in rows]
+    default = [*gpu_keys, CPU_KEY]
+    if not isinstance(saved_order, list):
+        return default
+    available = set(default)
+    ordered = []
+    for key in saved_order:
+        if isinstance(key, str) and key in available and key not in ordered:
+            ordered.append(key)
+    additions = [key for key in default if key != CPU_KEY and key not in ordered]
+    ordered.extend(additions)
+    if CPU_KEY not in ordered:
+        ordered.append(CPU_KEY)
+    return ordered
+
+
+def priority_order(adapters=None):
+    rows = adapters if adapters is not None else globals()['adapters']()
+    try:
+        data = json.loads(_priority_path().read_text(encoding='utf-8'))
+        saved = data.get('order') if isinstance(data, dict) and data.get('version') == 1 else None
+    except (OSError, ValueError, TypeError, AttributeError):
+        saved = None
+    return normalize_order(rows, saved)
+
+
+def unsupported_graphics(rows):
+    # AUDIT-P39: report adapters that cannot provide a D3D12 device. Those can
+    # never run DirectML, so AI denoising silently falls back to a CPU path
+    # that is roughly ten times slower. Say it once instead of letting the
+    # user wonder why the status line reads CPU.
+    return [row['name'] for row in rows
+            if row.get('kind') != 'cpu' and not row.get('d3d12', True)]
+
+
+def priority_rows(adapters=None):
+    rows = default_adapter_order(adapters if adapters is not None else globals()['adapters']())
+    by_key = {row['key']: row for row in rows}
+    by_key[CPU_KEY] = {'id': None, 'key': CPU_KEY, 'kind': 'cpu', 'name': 'CPU'}
+    return [by_key[key] for key in priority_order(rows) if key in by_key]
+
+
+def save_priority(order, adapters=None):
+    rows = adapters if adapters is not None else globals()['adapters']()
+    valid = set([row['key'] for row in default_adapter_order(rows)] + [CPU_KEY])
+    if (not isinstance(order, (list, tuple)) or
+            any(not isinstance(key, str) for key in order) or
+            len(order) != len(valid) or set(order) != valid):
+        raise ValueError('AI 设备顺序与当前检测到的设备不匹配')
+    path = _priority_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name('.' + path.name + '.' + uuid.uuid4().hex + '.tmp')
+    try:
+        with temporary.open('x', encoding='utf-8') as stream:
+            json.dump({'version': 1, 'order': list(order)}, stream, ensure_ascii=False, indent=2)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        try: temporary.unlink(missing_ok=True)
+        except OSError: pass
+
+
+def d3d12_supported(adapter):
+    # AUDIT-P39: DirectML needs a D3D12 device at feature level 11_0 or above.
+    # Asking D3D12 directly is exact; guessing from a marketing name is not.
+    # A GTX 900 (Maxwell) has it, a GTX 500 (Fermi) does not, and some OEM
+    # rebadges share names across both.
+    try:
+        dll = C.WinDLL('d3d12.dll')
+    except OSError:
+        return False
+    create = dll.D3D12CreateDevice
+    create.argtypes = [C.c_void_p, C.c_int, C.c_void_p, C.POINTER(C.c_void_p)]
+    create.restype = C.c_long
+    device = C.c_void_p()
+    iid = C.create_string_buffer(uuid.UUID('189819f1-1db6-4b57-be54-1821339b85f7').bytes_le)
+    hr = create(adapter, 0xb000, iid, C.byref(device))
+    if hr < 0 or not device:
+        return False
+    try:
+        # ID3D12Device::Release is slot 2.
+        table = C.cast(device, C.POINTER(C.POINTER(C.c_void_p))).contents
+        C.WINFUNCTYPE(C.c_uint, C.c_void_p)(table[2])(device)
+    except Exception:
+        pass
+    return True
 
 
 def adapters():
@@ -66,6 +184,7 @@ def adapters():
                                        memory_available=max(0, int(mem.budget)-int(mem.usage)),
                                        memory_scope='DXGI current-process local budget, not global physical free memory')
                     finally: release(adapter3)
+                row['d3d12'] = d3d12_supported(adapter)
                 result.append(row)
             finally: release(adapter)
     finally: release(factory)
@@ -73,7 +192,7 @@ def adapters():
     for item in result:
         if item['luid'] in seen: continue
         seen.add(item['luid']); unique.append(item)
-    return sorted(unique, key=lambda item: (-item['dedicated'], item['id']))
+    return default_adapter_order(unique)
 
 
 def memory_available():
@@ -96,6 +215,9 @@ def identity(adapter):
 def failure(exc):
     text = str(exc).lower()
     codes = sorted(set(re.findall(r'0x[0-9a-f]{8}', text)))
+    if type(exc).__name__=='InvalidDenoiseOutput':
+        return {'kind':'profile','codes':codes,'reason':'模型输出数值异常；已停用此设备上的该模型配置。',
+                'detail':str(exc)}
     if any(code in codes for code in ('0x887a0005', '0x887a0006', '0x887a0007')) or any(word in text for word in ('device removed', 'device hung', 'device reset', 'dxgi_error_device')):
         return {'kind': 'device', 'codes': codes, 'reason': '显卡驱动报告设备停止响应；保留故障保护，不再自动尝试该设备。'}
     if isinstance(exc,MemoryError) or '0x8007000e' in codes or any(word in text for word in ('out of memory', 'e_outofmemory', 'failed to allocate', 'memory allocation', 'bad_alloc', 'not enough memory', 'allocation failed')):

@@ -26,7 +26,8 @@ class NativeNoisePanel(ttk.Frame):
                               resolution=1,default=meta['default'],command=lambda v,k=key:self.changed(k,v))
             slider.pack(fill='x');self.sliders[key]=slider
             Tooltip(slider,meta['tooltip'])
-        ttk.Button(self.body,text='恢复原有显影设置',command=self.reset).pack(fill='x',pady=(5,0))
+        self.reset_button=ttk.Button(self.body,text='恢复原有显影设置',command=self.reset)
+        self.reset_button.pack(fill='x',pady=(5,0))
 
     def available(self):
         a=self.app

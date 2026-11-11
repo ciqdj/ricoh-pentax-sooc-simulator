@@ -1,11 +1,12 @@
 """3.1 workbench layout, with original-engine photo processing."""
+import os
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 import json, math, os, queue, re, sys, threading, time, traceback
 from ui_language import (
     tk, ttk, messagebox, simpledialog, filedialog, OPTIONS as LANGUAGE_OPTIONS,
-    current_language, set_language, source_caption,
+    current_language, set_language, source_caption, tr,
 )
 from PIL import Image, ImageTk
 import numpy as np
@@ -37,7 +38,7 @@ from custom_lut_ui import CustomLutMixin
 from preset_thumbnails import PresetThumbnailMixin
 from editor_ui import EditorMixin,EditorNativeNoisePanel,DENOISE_CHOICES
 
-VERSION='3.5.12'
+VERSION='3.5.13'
 classic.VERSION=VERSION
 classic.PRESETS=CONFIG/'native-presets.json'
 GROUPS=PENTAX_GROUPS
@@ -83,6 +84,16 @@ def valid_preset(value):
     return True
 
 
+def _is_baseline_signature(sig):
+    """AUDIT-FIX P14: the (0.0,(),1.0) constant was written for the legacy 4-tuple
+    signature. The editor path adds a fifth 'stamp' element, so comparing sig[1:]
+    against a 3-tuple could never be true and the baseline exclusion silently
+    stopped working. Compare only the middle (exposure, controls, amount) triple."""
+    if not isinstance(sig, tuple) or len(sig) < 4:
+        return False
+    return sig[1:4] == (0.0, (), 1.0)
+
+
 class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,PreviewAdjustmentsMixin,classic.App):
     def __init__(self,root):
         self.brand=tk.StringVar(master=root,value=PENTAX);self.brand_states={};self.brand_buttons={}
@@ -100,6 +111,9 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.card_pool=ThreadPoolExecutor(max_workers=1,thread_name_prefix='PresetPreview')
         self.post_cache=None;self.post_completed=0;self.post_running=None
         self.input_histogram=None;self.output_histogram=None;self.histogram_key=None
+        self.ai_device_rows=[];self.ai_device_order_keys=[];self.ai_device_saved_keys=[];self.ai_device_drag_index=None
+        self._background_preparation_after=None;self._background_idle_at=0.
+        self._color_warmup_thread=None;self._prewarm_attempted=False
         self.want_detail=False;self.detail_cache=None;self.viewport=None
         self.denoise_pool=ThreadPoolExecutor(max_workers=1,thread_name_prefix='FullPhotoDenoise')
         self.denoise_future=None;self.denoise_waiting=None;self.denoise_job=None
@@ -151,11 +165,22 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.tone_panel=TonePanel(right,self.tone_changed);self.tone_panel.pack(fill='x',pady=(0,10),before=first)
         acceleration=ttk.Frame(right);acceleration.pack(fill='x',pady=(0,10),before=first)
         self.acceleration=tk.StringVar(value='自动')
+        ttk.Label(acceleration,text='色彩预览加速').pack(anchor='w',pady=(0,2))
         self.acceleration_combo=ttk.Combobox(acceleration,textvariable=self.acceleration,values=('自动','仅 CPU'),state='readonly')
         self.acceleration_combo.pack(fill='x');self.acceleration_combo.bind('<<ComboboxSelected>>',self.acceleration_changed)
         self.acceleration_text=tk.StringVar(value='正在检测可用加速方式…')
         ttk.Label(acceleration,textvariable=self.acceleration_text,wraplength=258,style='Hint.TLabel').pack(fill='x')
-        self.post_pool.submit(gpu_compute.warmup)
+        ttk.Label(acceleration,text='AI 降噪设备顺序').pack(anchor='w',pady=(8,2))
+        self.ai_device_order=tk.Listbox(acceleration,height=3,exportselection=False,activestyle='none',
+                                        relief='flat',borderwidth=0,highlightthickness=1,
+                                        highlightbackground=EDGE,highlightcolor=BLUE)
+        self.ai_device_order.pack(fill='x')
+        self.ai_device_error=''
+        self.ai_device_hint=tk.StringVar(value=tr('正在检测显卡…'))
+        ttk.Label(acceleration,textvariable=self.ai_device_hint,wraplength=258,style='Hint.TLabel').pack(fill='x',pady=(3,0))
+        self.ai_device_order.bind('<Button-1>',self.ai_device_drag_start,add='+')
+        self.ai_device_order.bind('<B1-Motion>',self.ai_device_drag,add='+')
+        self.ai_device_order.bind('<ButtonRelease-1>',self.ai_device_drag_end,add='+')
         denoise_box=ttk.LabelFrame(right,text='降噪',padding=8);denoise_box.pack(fill='x',pady=(0,10),before=first)
         self.denoise_enabled=tk.BooleanVar(value=False)
         self.denoise_model=tk.StringVar(value=DENOISE_CHOICES['off'])
@@ -171,6 +196,11 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.denoise_detail=DenoiseDetail(self,denoise_box)
         self.denoise_start_button=ttk.Button(denoise_box,text='开始全尺寸降噪',command=self.start_denoise)
         self.denoise_start_button.pack(fill='x',pady=(5,3))
+        result_actions=ttk.Frame(denoise_box);result_actions.pack(fill='x',pady=(0,3))
+        self.denoise_regenerate_button=ttk.Button(result_actions,text='重新生成降噪',command=self.regenerate_denoise,state='disabled')
+        self.denoise_regenerate_button.pack(side='left',fill='x',expand=True,padx=(0,3))
+        self.denoise_discard_button=ttk.Button(result_actions,text='丢弃降噪结果',command=self.discard_denoise,state='disabled')
+        self.denoise_discard_button.pack(side='left',fill='x',expand=True)
         self.denoise_cancel_button=ttk.Button(denoise_box,text='取消降噪',command=self.cancel_denoise,state='disabled')
         self.denoise_cancel_button.pack(fill='x',pady=(0,5))
         progress_row=ttk.Frame(denoise_box);progress_row.pack(fill='x')
@@ -215,6 +245,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         self.root.bind_class('PhotoWheel','<MouseWheel>',self.route_wheel)
         self.root.title(classic.APP_NAME+' '+VERSION)
         self.ready=True;self.apply_dark();self.update_brand_controls();self.build_cards();self.build_controls();self.settings_changed();self.install_wheel()
+        threading.Thread(target=self.load_ai_device_order,name='AIDeviceDiscovery',daemon=True).start()
         root.protocol('WM_DELETE_WINDOW',self.request_close)
 
     def build_language_menu(self):
@@ -241,6 +272,145 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         if self.history_expanded:
             self.refresh_history_tree(force=True)
         self.poll_editor_tasks(force=True)
+        self.update_ai_device_hint()
+        self.render_ai_device_order()
+
+    def load_ai_device_order(self):
+        try:
+            from neural_devices import priority_rows
+            rows=priority_rows()
+            error=''
+        except Exception as exc:
+            rows=[];error=type(exc).__name__
+        def apply():
+            if self.closed:return
+            self.ai_device_rows=rows
+            self.ai_device_order_keys=[row['key'] for row in rows]
+            self.ai_device_saved_keys=list(self.ai_device_order_keys)
+            self.ai_device_error=error
+            self.ai_device_order.configure(height=max(2,min(6,len(rows))))
+            self.update_ai_device_hint()
+            self.render_ai_device_order()
+            self._warn_unsupported_graphics(rows)
+        try:self.root.after(0,apply)
+        except tk.TclError:pass
+
+    def _warn_unsupported_graphics(self, rows):
+        # AUDIT-P39: DirectML needs a D3D12 device. Without one the AI models run on
+        # CPU, roughly ten times slower, and the only visible sign is a status line.
+        # Warn once per launch so the reason is explicit and dismissible.
+        if getattr(self, '_graphics_warned', False):return
+        from neural_devices import unsupported_graphics
+        names = list(dict.fromkeys(unsupported_graphics(rows)))
+        if not names:return
+        self._graphics_warned = True
+        messagebox.showwarning(
+            '显卡不支持 AI 降噪',
+            '检测到以下显卡不支持 DirectX 12：\n\n    ' + '\n    '.join(names) + '\n\n'
+            'AI 降噪（NAFNet / Restormer）通过 DirectML 运行，必须由支持 DirectX 12 的显卡'
+            '提供算力。典型门槛是 NVIDIA GTX 900（Maxwell）及更新型号；'
+            'GTX 700 / 600 仅部分支持，GTX 500 及更早的 Fermi 架构完全不支持。\n\n'
+            '因此降噪会自动改用 CPU，速度约为显卡的十分之一。\n'
+            '如果只需要降噪而不追求速度，可以直接使用「DCU 原厂降噪」，它不经过 DirectML。')
+
+    def _schedule_background_preparation(self, delay=400):
+        if self.closed:return
+        if self._background_preparation_after is not None:
+            self.root.after_cancel(self._background_preparation_after)
+        self._background_preparation_after=self.root.after(delay,self.start_background_preparation)
+
+    def defer_background_preparation(self):
+        if self.closed or not self.ready:return
+        self._background_idle_at=time.monotonic()+1.5
+        import startup_prewarm
+        if startup_prewarm.snapshot().get('state') in ('queued','running'):
+            startup_prewarm.stop();self._prewarm_attempted=False
+        self._schedule_background_preparation(1600)
+
+    def start_background_preparation(self):
+        self._background_preparation_after=None
+        if self.closed:return
+        if (time.monotonic()<self._background_idle_at or self.busy or self.preview_started
+                or not self.post_idle() or not self.denoise_idle()):
+            self._schedule_background_preparation();return
+        if (gpu_compute.status()['mode']=='auto' and gpu_compute.status()['state']=='waiting'
+                and os.environ.get('PHOTO_GPU_DISABLE')!='1'
+                and (self._color_warmup_thread is None or not self._color_warmup_thread.is_alive())
+                ):
+            self._color_warmup_thread=gpu_compute.start_background_warmup()
+        if (self._color_warmup_thread is not None and self._color_warmup_thread.is_alive()) or gpu_compute.status()['state']=='checking':
+            self._schedule_background_preparation();return
+        if self._prewarm_attempted or os.environ.get('PHOTO_PREWARM_DISABLE')=='1':return
+        import startup_prewarm
+        if startup_prewarm.start(delay=0.):self._prewarm_attempted=True
+        else:self._schedule_background_preparation()
+
+    def update_ai_device_hint(self):
+        if not hasattr(self,'ai_device_hint'):return
+        value=tr('设备检测失败：{0}').format(self.ai_device_error) if self.ai_device_error else tr('拖动以调整 AI 降噪优先级')
+        self.ai_device_hint.set(value)
+
+    def render_ai_device_order(self):
+        if not hasattr(self,'ai_device_order'):return
+        by_key={row['key']:row for row in self.ai_device_rows}
+        self.ai_device_order.delete(0,'end')
+        for key in self.ai_device_order_keys:
+            row=by_key.get(key,{})
+            kind={'discrete':tr('独立显卡'),'integrated':tr('集成显卡'),'cpu':'CPU'}.get(row.get('kind'),'GPU')
+            name='CPU' if key=='cpu' else row.get('name','GPU')
+            self.ai_device_order.insert('end',f'{kind}  ·  {name}')
+
+    def ai_device_drag_start(self,event):
+        index=self.ai_device_order.nearest(event.y)
+        self.ai_device_drag_index=index if 0<=index<len(self.ai_device_order_keys) else None
+
+    def ai_device_drag(self,event):
+        source=self.ai_device_drag_index
+        if source is None or not self.ai_device_order_keys:return 'break'
+        target=max(0,min(len(self.ai_device_order_keys)-1,self.ai_device_order.nearest(event.y)))
+        if source!=target:
+            key=self.ai_device_order_keys.pop(source);self.ai_device_order_keys.insert(target,key)
+            self.ai_device_drag_index=target;self.render_ai_device_order()
+            self.ai_device_order.selection_set(target);self.ai_device_order.activate(target)
+        return 'break'
+
+    def ai_device_drag_end(self,event=None):
+        self.ai_device_drag_index=None
+        if self.ai_device_order_keys==self.ai_device_saved_keys:return
+        try:
+            from neural_devices import save_priority
+            save_priority(self.ai_device_order_keys)
+        except Exception:
+            self.ai_device_order_keys=list(self.ai_device_saved_keys)
+            self.render_ai_device_order()
+            messagebox.showerror('AI 设备顺序','设备列表已变化或无法保存，请重新打开设置。',parent=self.root)
+            return
+        self.ai_device_saved_keys=list(self.ai_device_order_keys)
+        self.restart_ai_denoise_for_devices()
+
+    def restart_ai_denoise_for_devices(self):
+        # AUDIT-P24: a new device order invalidates the running AI job. PhotoKey is
+        # (photo, model, backend_mode) and does not contain the device order, so the
+        # task already running on the old device would otherwise be reused.
+        if not getattr(self, "current_path", None):return
+        choice = (self.editor_state or {}).get("denoise") or {}
+        if choice.get("kind") != "ai" or float(choice.get("amount") or 0) <= 0:return
+        try:
+            key = self.denoise_key()
+            if key is not None:self.photo_denoise_store.cancel(key)
+        except Exception:pass
+        self.denoise_error = ""
+        self.status.set("AI 设备顺序已更新，正在用新设备重新开始降噪。")
+        self.editor_history_only = False
+        self._denoise_request = (str(self.current_path), choice["model"])
+        try:self.root.after(80, self._restart_ai_denoise_now)
+        except tk.TclError:pass
+
+    def _restart_ai_denoise_now(self):
+        if self.closed or self.busy or not self.current_path:return
+        choice = (self.editor_state or {}).get("denoise") or {}
+        if choice.get("kind") != "ai" or float(choice.get("amount") or 0) <= 0:return
+        self.start_denoise()
 
     def build_adjustment_layout(self,right,adjust,export,acceleration,denoise,balance):
         # Keep every original parent and callback. Only geometry containers
@@ -613,6 +783,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         if getattr(self,'editor_enabled',False):return self.editor_request_render()
         self.pending=None
         if not renderer_available(self.brand.get(),self.look.get()) or not self.current_path or self.closed:return
+        self.defer_background_preparation()
         self.requested=self.signature();self.request_revision+=1;self.preview_error=''
         if self.requested in self.native_cache:self.show_result(*self.native_cache[self.requested]);return
         self.preview_started=time.monotonic();self.preview_stage='正在更新，保留上一帧';self.draw()
@@ -621,7 +792,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
 
     def cache_result(self,token,sig,result):
         self.native_cache.pop(sig,None);self.native_cache[sig]=result
-        custom=[s for s in self.native_cache if s[1:]!=(0.0,(),1.0) and s!=self.requested]
+        custom=[s for s in self.native_cache if not _is_baseline_signature(s) and s!=self.requested]
         for old in custom[:-15]:
             del self.native_cache[old];self.cache_evictions.put((token,old))
 
@@ -630,6 +801,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         if not indices:return
         path=self.files[indices[0]]
         if self.editor_enabled:return self.editor_file_selected(path)
+        self.defer_background_preparation()
         from photo_denoise import identity_for
         if path==self.current_path and self._preset_photo==identity_for(path):return
         self.generation+=1;self.current_path=self.path=path;self.native_cache={};self.factory={}
@@ -672,6 +844,17 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
                 self._load_filter_worker(working,token,evictions,brand)
         except RenderCancelled:pass
         except Exception as exc:self.events.put(('native_error',(token,None,str(exc))))
+
+    # ---------------------------------------------------------------------------
+    # LEGACY PATH  (AUDIT-20261111/03-ISSUES-BATCH3.md)
+    #
+    # Reachable only when App.editor_enabled is False. build_editor_toolbar()
+    # sets it to True inside App.__init__, so this path never runs after
+    # startup. It is kept as the reference implementation for rollback.
+    #
+    # Do NOT extend. If you change behaviour here, also confirm the editor path
+    # in editor_ui.py / editor_pipeline.py.
+    # ---------------------------------------------------------------------------
 
     def _load_filter_worker(self,path,token,evictions,brand=PENTAX):
         if brand==CUSTOM:return self.load_custom_worker(path,token,evictions)
@@ -901,10 +1084,8 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
 
 
     def acceleration_changed(self,event=None):
-        import startup_prewarm
-        startup_prewarm.stop()
         gpu_compute.set_mode('cpu' if self.acceleration.get()=='仅 CPU' else 'auto')
-        if self.acceleration.get()!='仅 CPU':self.post_pool.submit(gpu_compute.warmup)
+        if self.acceleration.get()!='仅 CPU':self._schedule_background_preparation(0)
         self.schedule_post()
 
 
@@ -955,7 +1136,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         native_settings={str(Path(path).resolve()):dict(self.photo_native_noise.get(str(Path(path).resolve()),{})) for path in self.files}
         held=self.current_denoise()
         input_records={self.photo_settings_key():held['record']} if held is not None else {}
-        args=(list(self.files),Path(self.output.get()),self.signature(),FORMAT_CHOICES[self.format.get()],quality,bits,self.brand.get(),self.current_balance(),self.current_post(),gpu_compute.status()['mode'],photo_settings,native_settings,input_records)
+        args=(list(self.files),Path(self.output.get()),self.signature(),FORMAT_CHOICES[self.format.get()],quality,bits,self.brand.get(),self.current_balance(),self.current_post(),'auto',photo_settings,native_settings,input_records)
         self.export_thread=threading.Thread(target=self.worker,args=args,daemon=True);self.export_thread.start()
 
     def worker(self,files,folder,sig,fmt,quality,bits,brand=PENTAX,post_balance=(0,0),post_settings=None,backend_mode='auto',photo_settings=None,native_settings=None,input_records=None):
@@ -1018,7 +1199,12 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
     def poll_once(self):
         if self.ready:
             self.poll_custom_import()
-            self.poll_denoise();self.poll_post();self.viewport.poll()
+            self.poll_denoise()
+            # AUDIT-PERF P-1: in editor mode editor_ui.queue_post overrides the
+            # legacy path, so post_request stays None and poll_post() can never
+            # produce a frame. Skipping it removes an idle call every ~16 ms.
+            if not self.editor_enabled:self.poll_post()
+            self.viewport.poll()
             if self.denoise_detail is not None:self.denoise_detail.poll()
             self.native_noise_panel.sync()
             self.poll_preset_thumbnails()
@@ -1036,6 +1222,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
                 elif kind=='native_result':
                     token,sig,result=value
                     if token!=self.generation:continue
+                    if self.editor_enabled and result[2].get('_editor_input_token')!=self.source_token():continue
                     self.cache_result(token,sig,result);key=sig[0];self.factory[key]=result[2]
                     if self.editor_enabled:self.editor_report=result[2]
                     self.preview_times[key]=round(time.monotonic()-self.photo_started,3)
@@ -1044,7 +1231,7 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
                         identity=(self.generation,self.brand.get(),self.look.get(),True)
                         if getattr(self,'_controls_identity',None)!=identity:self.build_controls()
                     elif (self.requested and sig[0]==self.requested[0] and self.requested not in self.native_cache
-                          and sig[1:]!=(0.0,(),1.0)):
+                          and not _is_baseline_signature(sig)):
                         # A valid intermediate image from the same photo/look
                         # is useful while a newer parameter set is calculating.
                         # Keep the pending status; do not claim final settings.
@@ -1240,6 +1427,28 @@ class App(EditorMixin,PresetThumbnailMixin,CustomLutMixin,SourceDenoiseMixin,Pre
         if self._begin_close():self._wait_for_close();self._finish_close()
 
 
+_SINGLE_INSTANCE=None
+
+def _claim_single_instance():
+    """Return False when another GUI instance already owns the mutex."""
+    if os.name != 'nt':return True
+    import ctypes
+    from ctypes import wintypes
+    kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    kernel.CreateMutexW.argtypes=[ctypes.c_void_p,wintypes.BOOL,wintypes.LPCWSTR]
+    kernel.CreateMutexW.restype=wintypes.HANDLE
+    handle=kernel.CreateMutexW(None,False,'Local\\PhotoWorkbenchAppInstance')
+    if not handle:return True
+    if ctypes.get_last_error()==183:
+        from ui_language import messagebox
+        messagebox.showinfo('已在运行中',
+            '程序已经在运行中。\n\n请切换到已打开的窗口，或先关闭它再重新启动。')
+        return False
+    global _SINGLE_INSTANCE
+    _SINGLE_INSTANCE=handle
+    return True
+
+
 def main():
     if '--native-worker' in sys.argv:
         from native_worker import main as worker
@@ -1270,11 +1479,13 @@ def main():
         verify(Path(sys.argv[index+1]),arguments);return
     if '--render-photo' in sys.argv:
         i=sys.argv.index('--render-photo');save(sys.argv[i+1],sys.argv[i+2],sys.argv[i+3] if len(sys.argv)>i+3 else 'Natural');return
+    # AUDIT-P25: the launcher guards its own launches with a mutex, but a
+    # second copy of the unpacked payload would still start if the launcher
+    # died while this process kept running. Guard the GUI entry too.
+    if not _claim_single_instance():return
     from startup_signal import after_first_frame
-    root=tk.Tk();App(root)
-    root.after(40,lambda:after_first_frame(root))
-    import startup_prewarm
-    root.after(1200,startup_prewarm.start)
+    root=tk.Tk();app=App(root)
+    root.after(40,lambda:after_first_frame(root,app.start_background_preparation))
     root.mainloop()
 
 

@@ -92,13 +92,18 @@ def _native(source,work,mode,ev,progress=None,cancelled=None,timeout=60,controls
     try:
         while child.poll() is None:
             _check_cancel(cancelled)
-            if time.monotonic()-started>timeout:raise TimeoutError()
+            elapsed=time.monotonic()-started
+            if elapsed>timeout:raise TimeoutError()
             stage_file=work/'stage.json'
             if progress and stage_file.is_file():
                 try:stage=json.loads(stage_file.read_text(encoding='utf-8'))['stage']
                 except (OSError,ValueError,KeyError):stage=''
                 if stage and stage!=last_stage:progress(stage);last_stage=stage
-            time.sleep(.1)
+            # AUDIT-PERF N-1: poll quickly while the native engine is still
+            # loading, then back off. Only the progress label reads stage.json;
+            # success is decided by the exit code plus result.json and the TIFF,
+            # so the interval cannot change any pixel or acceptance rule.
+            time.sleep(.05 if elapsed<1.0 else .15 if elapsed<5.0 else .35)
     except (RenderCancelled,TimeoutError) as exc:
         # Terminate only this task's worker process tree, including a bootloader.
         subprocess.run(['taskkill','/PID',str(child.pid),'/T','/F'],stdout=subprocess.DEVNULL,
@@ -146,11 +151,14 @@ class RenderSession:
                 self.source_model=str(tag.value if tag else '').strip()
                 self._dimensions=max(((int(p.imagewidth),int(p.imagelength)) for p in image.pages),
                                      key=lambda size:size[0]*size[1])
+        elif self.source.suffix.lower() in ('.tif','.tiff'):
+            from photo_formats import metadata_from
+            self.source_model=metadata_from(self.source)[3].get('camera_model','')
 
     def __enter__(self):return self
     def __exit__(self,*args):self.close()
     @classmethod
-    def from_rgb(cls,rgb,alpha=None,notes=()):
+    def from_rgb(cls,rgb,alpha=None,notes=(),source_model=''):
         """Use an immutable RGB16 working image without re-decoding a TIFF.
 
         This is explicitly the RGB compatibility route, never a synthetic RAW
@@ -165,7 +173,7 @@ class RenderSession:
         instance=cls.__new__(cls)
         instance.source=Path('rgb16-working-input.tif')
         instance.rgb=rgb;instance.alpha=alpha;instance.notes=list(notes)
-        instance.inputs={};instance.source_model='';instance.decode_count=0
+        instance.inputs={};instance.source_model=str(source_model);instance.decode_count=0
         instance.baselines={};instance.baseline_lock=threading.Lock()
         instance.prepare_lock=threading.Lock();instance.temp=None;instance.work=None
         instance._dimensions=(rgb.shape[1],rgb.shape[0])
@@ -351,18 +359,13 @@ def save(source,destination,look='Natural',exposure=0.0,jpeg_quality=98,bit_dept
     if keep_alpha:
         a=np.rint(alpha*(65535 if bits==16 else 255)).astype(rgb.dtype)
         rgb=np.concatenate([rgb,a[...,None]],axis=2)
+    from photo_formats import capture_for_output,save_raster
+    exif,capture=capture_for_output(source,rgb.shape)
     destination.parent.mkdir(parents=True,exist_ok=True);created=False;sidecar_created=False
     try:
-        with destination.open('xb') as out:
-            created=True
-            if fmt=='tiff':tifffile.imwrite(out,rgb,photometric='rgb',compression='deflate',iccprofile=ICC,
-                extrasamples='unassalpha' if keep_alpha else None,metadata=None,software=None)
-            elif fmt=='png':out.write(encode_png(rgb,b''))
-            elif fmt=='jpeg':Image.fromarray(rgb).save(out,'JPEG',quality=jpeg_quality,subsampling=0,icc_profile=ICC)
-            elif fmt=='webp':Image.fromarray(rgb).save(out,'WEBP',lossless=True,exact=True,icc_profile=ICC)
-            else:Image.fromarray(rgb).save(out,'BMP')
+        save_raster(destination,rgb,fmt,jpeg_quality,keep_alpha,exif);created=True
         report.update({'output_format':fmt,'output_bits':bits,'lossless_encoding':fmt!='jpeg',
-            'alpha_retained':keep_alpha,'personal_metadata_copied':False})
+            'alpha_retained':keep_alpha,'capture_metadata':capture,'personal_metadata_copied':False})
         with sidecar.open('x',encoding='utf-8') as out:
             sidecar_created=True;json.dump(report,out,ensure_ascii=False,indent=2)
         return report

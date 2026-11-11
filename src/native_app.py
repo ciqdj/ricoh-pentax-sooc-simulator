@@ -350,6 +350,17 @@ class App:
         self.pool.shutdown(wait=True,cancel_futures=True);self.root.destroy()
 
 
+# ---------------------------------------------------------------------------
+# LEGACY PATH  (AUDIT-20261111/03-ISSUES-BATCH3.md)
+#
+# Reachable only when App.editor_enabled is False. build_editor_toolbar()
+# sets it to True inside App.__init__, so this path never runs after
+# startup. It is kept as the reference implementation for rollback.
+#
+# Do NOT extend. If you change behaviour here, also confirm the editor path
+# in editor_ui.py / editor_pipeline.py.
+# ---------------------------------------------------------------------------
+
 def main():
     if '--native-worker' in sys.argv:
         from native_worker import main as worker

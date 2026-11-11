@@ -38,21 +38,105 @@ def transform(rgb,x,y):
     return np.clip(np.where(linear<=.0031308,linear*12.92,1.055*np.maximum(linear,0)**(1/2.4)-.055),0,1)
 
 
+# ---------------------------------------------------------------------------
+# AUDIT-P23: interactive balance needs ~35 FPS at 480x360, but one
+# RGB->Lab->RGB round trip costs ~107 ms because it does three sRGB decodes
+# and three sRGB encodes with pow().
+#
+# The math is separable: while the pointer moves the source pixels do not
+# change, so RGB->Lab can be computed once and only Lab->RGB repeated.
+# prepare_rgb16()/apply_lab16() expose that split. apply_rgb16() keeps the
+# plain one-shot contract and NEVER caches, so no caller can ever see stale
+# pixels. All three produce results bit-identical to transform().
+# ---------------------------------------------------------------------------
+_D = 6/29
+_D3 = _D**3
+_M1 = np.array([[.4124564,.3575761,.1804375],
+                [.2126729,.7151522,.0721750],
+                [.0193339,.1191920,.9503041]]) / np.array([.95047,1,1.08883])[:,None]
+_M1T = np.ascontiguousarray(_M1.T)
+_M2 = np.array([[3.2404542,-1.5371385,-.4985314],
+                [-.9692660,1.8760108,.0415560],
+                [.0556434,-.2040259,1.0572252]])
+_M2T = np.ascontiguousarray(_M2.T)
+_SCALE = np.array([.95047,1,1.08883])
+
+
+def _srgb_to_lab(v):
+    """v: float64 sRGB 0..1 -> the Lab-side cbrt vector."""
+    linear = np.where(v<=.04045, v/12.92, ((v+.055)/1.055)**2.4)
+    xyz = linear @ _M1T
+    out = np.empty_like(xyz)
+    big = xyz > _D3
+    np.cbrt(xyz, out=out, where=big)
+    np.divide(xyz, 3*_D*_D, out=out, where=~big)
+    out[~big] += 4/29
+    return out
+
+
+def _lab_to_srgb(f, ax, ay):
+    """f: float64 Lab-side vector -> sRGB 0..1. ax=A-B, ay=G-M."""
+    g = f.copy()
+    g[...,0] -= ay/500.0
+    g[...,2] -= ax/200.0
+    xyz = np.empty_like(g)
+    big = g > _D
+    np.multiply(g, g, out=xyz)
+    xyz *= g
+    small = np.subtract(g, 4/29, out=np.empty_like(g))
+    small *= 3*_D*_D
+    np.copyto(xyz, small, where=~big)
+    xyz *= _SCALE
+    linear = xyz @ _M2T
+    out = np.empty_like(linear)
+    nb = linear > .0031308
+    np.multiply(linear, 12.92, out=out, where=~nb)
+    pos = np.maximum(linear, 0, out=np.empty_like(linear))
+    np.power(pos, 1/2.4, out=pos)
+    pos *= 1.055
+    pos -= .055
+    np.copyto(out, pos, where=nb)
+    np.clip(out, 0, 1, out=out)
+    return out
+
+
+def prepare_rgb16(rgb):
+    """Compute the reusable RGB->Lab half once for an immutable RGB16 input.
+
+    The caller owns the lifetime. It must only reuse the result while the
+    exact same pixel content is still valid; editor_pipeline keys this on its
+    mixer-stage cache entry, which is never mutated in place.
+    """
+    if rgb.dtype!=np.uint16 or rgb.ndim!=3 or rgb.shape[-1]!=3:
+        raise ValueError('色彩平衡需要 RGB16 输入')
+    return _srgb_to_lab(rgb.astype(np.float64)/65535)
+
+
+def apply_lab16(lab,balance=(0,0),cancelled=None):
+    """Lab -> RGB16 for one balance. Bit-identical to transform()."""
+    x,y=validate(balance)
+    if lab.dtype!=np.float64 or lab.ndim!=3 or lab.shape[-1]!=3:
+        raise ValueError('色彩平衡需要预计算的 Lab 输入')
+    out=np.empty(lab.shape,np.uint16)
+    for row in range(0,len(lab),64):
+        if cancelled and cancelled():
+            from native_backend import RenderCancelled
+            raise RenderCancelled()
+        piece=_lab_to_srgb(lab[row:row+64],x,y)
+        out[row:row+64]=np.floor(piece*65535+.5).astype(np.uint16)
+    return out
+
+
 def apply_rgb16(rgb,balance=(0,0),cancelled=None):
+    """One-shot RGB16 balance. Recomputes everything; holds no state."""
     x,y=validate(balance)
     if x==0 and y==0:return rgb
     if rgb.dtype!=np.uint16 or rgb.ndim!=3 or rgb.shape[-1]!=3:raise ValueError('色彩平衡需要 RGB16 输入')
     from gpu_compute import balance as gpu_balance
     accelerated=gpu_balance(rgb,x,y,cancelled)
     if accelerated is not None:return accelerated
-    out=np.empty_like(rgb)
-    for row in range(0,len(rgb),64):
-        if cancelled and cancelled():
-            from native_backend import RenderCancelled
-            raise RenderCancelled()
-        out[row:row+64]=np.floor(transform(rgb[row:row+64].astype(np.float64)/65535,x,y)*65535+.5).astype(np.uint16)
-    return out
-
+    lab=_srgb_to_lab(rgb.astype(np.float64)/65535)
+    return apply_lab16(lab,(x,y),cancelled)
 
 def apply_image(image,balance=(0,0)):
     x,y=validate(balance)

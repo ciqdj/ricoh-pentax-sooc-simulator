@@ -80,7 +80,11 @@ class App:
         if not isinstance(self.user_presets,dict):self.user_presets={}
         self.user_presets={k:v for k,v in self.user_presets.items() if isinstance(v,dict) and v.get('look') in LOOKS}
         root.title(APP_NAME+' '+VERSION)
-        root.geometry('1280x860');root.minsize(1100,760);root.configure(bg='#f4f5f3')
+        root.minsize(1100,760);root.configure(bg='#f4f5f3')
+        # AUDIT-P29: open maximized. 'zoomed' keeps the title bar and the restore
+        # button, unlike -fullscreen which hides the frame and can trap the user.
+        root.geometry('1280x860')
+        root.state('zoomed')
         style=ttk.Style(root);style.theme_use('clam')
         style.configure('.',font=('Microsoft YaHei UI',10),background='#f4f5f3')
         style.configure('TButton',padding=(9,6))

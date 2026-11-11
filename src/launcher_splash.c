@@ -140,7 +140,10 @@ static LRESULT CALLBACK splash_proc(HWND hwnd,UINT message,WPARAM wp,LPARAM lp){
         loading(dc,frame_w,phase,progress,GetTickCount64()-started);EndPaint(hwnd,&paint);return 0;
     }
     if(message==WM_MOUSEACTIVATE)return MA_NOACTIVATE;
-    if(message==WM_CLOSE){ShowWindow(hwnd,SW_HIDE);return 0;}
+    /* AUDIT-P28: the banner is closed only by launcher_splash_close() once the
+       first frame is ready. A stray WM_CLOSE must not hide it and leave the user
+       with no visible sign that the app is still loading. */
+    if(message==WM_CLOSE)return 0;
     return DefWindowProcW(hwnd,message,wp,lp);
 }
 int launcher_splash_open(HINSTANCE instance,int visible){
@@ -156,7 +159,10 @@ int launcher_splash_open(HINSTANCE instance,int visible){
     void *pixels=NULL;art_dc=CreateCompatibleDC(NULL);art_bitmap=bitmap(art_dc,frame_w,frame_h,&pixels);
     if(!art_dc||!art_bitmap){launcher_splash_close();return 0;}
     art_previous=SelectObject(art_dc,art_bitmap);artwork(art_dc,pixels,frame_w,frame_h);
-    window=CreateWindowExW(WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE,klass.lpszClassName,L"RICOH & PENTAX SOOC Simulator",WS_POPUP,
+    /* AUDIT-P28: WS_EX_TOOLWINDOW keeps a window out of the taskbar, so a slow
+       first launch looked like nothing had started. WS_EX_APPWINDOW puts the
+       banner in the taskbar while WS_EX_NOACTIVATE still avoids stealing focus. */
+    window=CreateWindowExW(WS_EX_APPWINDOW|WS_EX_NOACTIVATE,klass.lpszClassName,L"RICOH & PENTAX SOOC Simulator",WS_POPUP,
         area.left+(area.right-area.left-frame_w)/2,area.top+(area.bottom-area.top-frame_h)/2,
         frame_w,frame_h,NULL,NULL,instance,NULL);
     if(!window){launcher_splash_close();return 0;}

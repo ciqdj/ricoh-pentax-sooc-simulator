@@ -10,7 +10,7 @@
 
 项目自写代码采用 MIT 许可。原厂软件与数据、第三方代码、模型、LUT 和品牌素材保留各自的权利和许可。复制、修改或再分发时，请按相应许可保留版权及许可说明。[项目许可](LICENSE) · [资源来源与许可](THIRD_PARTY.md)
 
-Windows 3.5.11 和 3.5.12 免安装版随附第三方图像处理组件，来源和适用条款见资源清单。厂商的 Windows 更新器协议对复制和转交第三方设有限制，原厂组件的公开分发授权需单独核实。[厂商软件许可条款](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html)
+Windows 3.5.11 和 3.5.13 免安装版随附第三方图像处理组件，来源和适用条款见资源清单。厂商的 Windows 更新器协议对复制和转交第三方设有限制，原厂组件的公开分发授权需单独核实。[厂商软件许可条款](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html)
 
 ## 固件和研究资料
 

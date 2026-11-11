@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | 理光色彩数学和整数影调算法 | GRKit；Python、C 和 OpenCL 适配 | `src/gr4-data/LICENSE-GRKit.txt`，MIT |
 | Adobe XMP 表序列化 | [RAWmakase](https://github.com/pch/rawmakase/tree/016b07e7a1728b91ee054b45269b3d911895dae0)，MIT | [RAWmakase-LICENSE.txt](src/licenses/RAWmakase-LICENSE.txt) |
-| 宾得原厂执行文件 | Windows 3.5.12 免安装版与 3.5.11 发布包附带 Digital Camera Utility 5.10.2.2 执行文件和运行依赖。3.5.12 本机 DCU 版读取用户安装的对应版本 | 原权利人保留版权。[厂商更新器许可条款](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html) |
+| 宾得原厂执行文件 | Windows 3.5.13 免安装版与 3.5.11 发布包附带 Digital Camera Utility 5.10.2.2 执行文件和运行依赖。3.5.13 本机 DCU 版读取用户安装的对应版本 | 原权利人保留版权。[厂商更新器许可条款](https://www.ricoh-imaging.co.jp/english/support/digital/dc_utility5_win.html) |
 | 宾得机型参数、理光模式表 | 从指定原厂软件 / 固件取得的参数数据 | 来源记录随数据保存；项目 MIT 许可不重授权原厂内容 |
 | NAFNet / Restormer | 官方推理模型，FP32 ONNX 格式 | 运行包 `denoise-data/LICENSE-*.txt` 与 manifest |
 | Fuji 第三方 LUT | abpy/FujifilmCameraProfiles | CC BY-NC-SA 4.0，见 `src/builtin-luts/sources/` |

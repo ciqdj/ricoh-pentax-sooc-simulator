@@ -10,6 +10,7 @@ import numpy as np
 from PIL import Image
 from photo_edit import normalize,manual_state,fingerprint,default_state
 from postprocess import process,blend_clean
+from color_balance import prepare_rgb16,apply_lab16
 from photo_denoise import identity_for,key_for
 from native_backend import RenderCancelled,RenderSession,LOOKS,mix_amount
 from filter_catalog import PENTAX,RICOH,CUSTOM,CREATIVE_LOOKS
@@ -88,8 +89,16 @@ def apply_manual(rgb,state,alpha=None,scale=1.,cancelled=None,progress=None,cach
             cancelled,progress,scale=scale,alpha=alpha))
         mixer_key=(basic_key,fingerprint(settings['post']['mixer']))
         rgb=cached('mixer',mixer_key,lambda:process(rgb,(0,0),{'mixer':settings['post']['mixer']},cancelled,progress))
+        # AUDIT-P23: split balance into a once-per-mixer RGB->Lab half and a
+        # per-frame Lab->RGB half. mixer_out is the immutable mixer cache entry,
+        # so the Lab view is only reused while that exact content is current.
+        mixer_out=rgb
+        lab=cached('lab',mixer_key,lambda:prepare_rgb16(mixer_out))
         balance_key=(mixer_key,tuple(settings['balance']))
-        rgb=cached('balance',balance_key,lambda:process(rgb,settings['balance'],{},cancelled,progress))
+        def _balance():
+            if not any(settings['balance']):return mixer_out
+            return apply_lab16(lab,settings['balance'],cancelled)
+        rgb=cached('balance',balance_key,_balance)
         rgb=process(rgb,(0,0),{'tone':settings['post']['tone']},cancelled,progress)
     _check(cancelled)
     return rgb
@@ -208,7 +217,8 @@ class EditorSession:
                     entry['native'].close();entry['native']=None
                 if entry['native'] is None:
                     entry['native']=(RenderSession(self.path) if native_pef else
-                        RenderSession.from_rgb(base,alpha,prepared.notes))
+                        RenderSession.from_rgb(base,alpha,prepared.notes,
+                            (prepared.metadata or {}).get('camera_model','')))
                     entry['native_pef']=native_pef
                 native=entry['native']
                 rgb,returned_alpha,native_report=native.render(key,0.,progress,cancelled,controls)
@@ -217,8 +227,13 @@ class EditorSession:
                     native_base,native_alpha=native.baseline(key,progress,cancelled)
                     before=native_base;alpha=native_alpha;base=native_base
                 elif returned_alpha is not None:alpha=returned_alpha
-                if amount!=1.:rgb=mix_amount(base,rgb,amount)
-                report['original_dcu_pipeline']=True
+                mixed = amount!=1.
+                if mixed:rgb=mix_amount(base,rgb,amount)
+                # AUDIT-FIX P6: claiming a pure original-DCU pipeline while the
+                # output is blended with the manual base misleads every consumer
+                # of the sidecar JSON.
+                report['original_dcu_pipeline']=not mixed
+                report['native_blend_applied']=mixed
                 report['native_custom_noise']=state['denoise']['kind']=='native'
             elif brand==RICOH:
                 from gr4_renderer import render,control_values
@@ -270,8 +285,7 @@ class EditorSession:
 def save(store,source,destination,state,jpeg_quality=98,bit_depth=16,backend_mode='auto',
          progress=None,cancelled=None,prepared_result=None,library=None):
     """Export the exact captured history state, never a downscaled display."""
-    import tifffile
-    from photo_formats import RASTER_EXT,resolve_format,ICC,encode_png
+    from photo_formats import RASTER_EXT,resolve_format,capture_for_output,save_raster
     destination=Path(destination).resolve();source=Path(source).resolve()
     sidecar=destination.with_name(destination.name+'.json')
     if source==destination or destination.exists() or sidecar.exists():raise ValueError('输出必须是新文件，不覆盖原片')
@@ -299,19 +313,13 @@ def save(store,source,destination,state,jpeg_quality=98,bit_depth=16,backend_mod
         if bits==8:rgb=((rgb.astype(np.uint32)+128)//257).astype(np.uint8)
         if keep_alpha:rgb=np.concatenate([rgb,np.rint(alpha*(65535 if bits==16 else 255)).astype(rgb.dtype)[...,None]],axis=2)
         _check(cancelled);destination.parent.mkdir(parents=True,exist_ok=True)
+        exif,capture=capture_for_output(session.prepared.exif,rgb.shape)
         created=False;side_created=False
         try:
-            with destination.open('xb') as handle:
-                created=True
-                if fmt=='tiff':tifffile.imwrite(handle,rgb,photometric='rgb',compression='deflate',iccprofile=ICC,
-                    extrasamples='unassalpha' if keep_alpha else None,metadata=None,software=None)
-                elif fmt=='png':handle.write(encode_png(rgb,b''))
-                elif fmt=='jpeg':Image.fromarray(rgb).save(handle,'JPEG',quality=jpeg_quality,subsampling=0,icc_profile=ICC)
-                elif fmt=='webp':Image.fromarray(rgb).save(handle,'WEBP',lossless=True,exact=True,icc_profile=ICC)
-                else:Image.fromarray(rgb).save(handle,'BMP')
+            save_raster(destination,rgb,fmt,jpeg_quality,keep_alpha,exif);created=True
             _check(cancelled)
             report.update(output_format=fmt,output_bits=bits,alpha_retained=keep_alpha,
-                          lossless_encoding=fmt!='jpeg',original_preserved=True)
+                          lossless_encoding=fmt!='jpeg',original_preserved=True,capture_metadata=capture)
             with sidecar.open('x',encoding='utf-8') as handle:
                 side_created=True;json.dump(report,handle,ensure_ascii=False,indent=2)
             return report

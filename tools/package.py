@@ -5,6 +5,15 @@ import argparse,subprocess,sys
 def main():
     p=argparse.ArgumentParser();p.add_argument('--work',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
     root=Path(__file__).resolve().parents[1];src=root/'src';work=a.work.resolve();out=a.output.resolve()
+    # AUDIT-20261111/32-BUILD-GAP.md: these resources are NOT in the Git tree.
+    # They come from tools/import_runtime.py <release.exe>. Silently skipping a
+    # missing directory produces a package that starts but has no original
+    # engine, no AI denoise and no video. Fail loudly instead.
+    required_dirs=('native','neural-runtime','denoise-data','bin')
+    missing=[name for name in required_dirs if not (src/name).is_dir()]
+    if missing:
+        raise SystemExit('Missing runtime resources in src/: '+', '.join(missing)
+                         + '. Run: python tools/import_runtime.py <release.exe> first.')
     work.mkdir(parents=True,exist_ok=True);out.mkdir(parents=True,exist_ok=True)
     args=[sys.executable,'-m','PyInstaller','--noconfirm','--onefile','--windowed',
         '--name','RICOH-PENTAX-SOOC-Simulator','--distpath',str(out),'--workpath',str(work/'pyinstaller'),

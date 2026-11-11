@@ -1,4 +1,16 @@
 """Bounded preview scheduling, independent of original-size export processing."""
+
+# ---------------------------------------------------------------------------
+# LEGACY PATH  (AUDIT-20261111/03-ISSUES-BATCH3.md)
+#
+# Reachable only when App.editor_enabled is False. build_editor_toolbar()
+# sets it to True inside App.__init__, so this path never runs after
+# startup. It is kept as the reference implementation for rollback.
+#
+# Do NOT extend. If you change behaviour here, also confirm the editor path
+# in editor_ui.py / editor_pipeline.py.
+# ---------------------------------------------------------------------------
+
 import json
 import sys
 import time
@@ -13,6 +25,7 @@ from filter_catalog import PENTAX
 
 class PreviewAdjustmentsMixin:
     def schedule_post(self,delay=45):
+        if hasattr(self,'defer_background_preparation'):self.defer_background_preparation()
         # Throttle continuous changes; resetting a trailing timer on every
         # slider event would prevent any image update until the user stopped.
         self._post_interacting_until=time.monotonic()+.16

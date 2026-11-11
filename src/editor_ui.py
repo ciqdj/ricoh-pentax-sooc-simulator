@@ -18,6 +18,20 @@ from ui_controls import Tooltip
 DENOISE_CHOICES = {'off': '关闭', 'native': 'DCU 原厂', 'nafnet': 'NAFNet',
                    'restormer': 'Restormer'}
 
+def _wait_wake(owner,timeout):
+    """AUDIT-PERF N-2 helper: block on the owner's wake condition when present.
+
+    Falls back to a plain sleep for construction paths (tests, partial objects)
+    that never ran init_editor_state, so a missing attribute cannot break the
+    render worker.
+    """
+    import time
+    condition=getattr(owner,'_editor_wake',None)
+    if condition is None:
+        time.sleep(timeout);return
+    with condition:condition.wait(timeout)
+
+
 
 def _clock(value):
     try:
@@ -72,9 +86,17 @@ class EditorNativeNoisePanel(NativeNoisePanel):
             for key, value in numbers.items():
                 self.values[key].set(value); self.labels[key].set(str(value))
                 self.sliders[key].configure(state='normal' if self.available() else 'disabled')
+            usable = self.available()
+            # AUDIT-P32: '恢复默认' stayed clickable while unavailable and then did
+            # nothing, which reads as a dead button. Disable it with the sliders.
+            if getattr(self, 'reset_button', None) is not None:
+                self.reset_button.configure(state='normal' if usable else 'disabled')
             if active:self.body.pack(fill='x')
             else:self.body.pack_forget()
-            self.note.set('原厂降噪使用 100% 滤镜浓淡' if active else '')
+            if not usable:
+                self.note.set('DCU 原厂降噪需要宾得原厂模式；请先在左侧选择自然/鲜明/四季等原厂模式。')
+            else:
+                self.note.set('原厂降噪使用 100% 滤镜浓淡' if active else '')
         finally:self.syncing = False
 
 
@@ -90,6 +112,13 @@ class EditorMixin:
         self.task_popup = None; self.task_tree = None; self._task_stamp = None
         self.editor_report = {}; self._editor_commit_serial = None
         self._editor_requested = None; self._editor_worker_token = None
+        # AUDIT-P22: choosing an AI denoise model must not start the computation.
+        # Only the explicit Start button records a request for (path, model).
+        self._denoise_request = None
+        # AUDIT-PERF N-2: wake the render worker on demand instead of
+        # spinning at 25 ms. A 0.25 s timeout keeps correctness even if a
+        # notification is missed.
+        self._editor_wake = threading.Condition()
 
     def build_editor_toolbar(self, right):
         toolbar = ttk.Frame(right)
@@ -101,11 +130,18 @@ class EditorMixin:
         style.configure('Editor.Treeview.Heading',background='#3a3a3c',foreground='#f2f2f7')
         self.restore_button = ttk.Button(toolbar, text='恢复原始', style='Editor.TButton', command=self.editor_restore_original)
         self.history_button = ttk.Button(toolbar, text='历史 ▾', style='Editor.TButton', command=self.open_history_menu)
-        for i, button in enumerate((self.restore_button, self.history_button)):
-            button.grid(row=0, column=i, sticky='ew', padx=(0, 4) if i == 0 else 0)
+        # AUDIT-FIX P1: PhotoHistory.commit() never had a caller, so committed_base
+        # stayed at default_state() and committed_styles stayed empty forever.
+        # This restores the explicit entry point without touching any data path.
+        self.commit_button = ttk.Button(toolbar, text='设为基准', style='Editor.TButton', command=self.editor_commit)
+        # AUDIT-P22: denoise is an explicit action, not a side effect of picking a model.
+        self.denoise_button = ttk.Button(toolbar, text='开始降噪', style='Editor.TButton', command=self.editor_start_denoise)
+        buttons = (self.restore_button, self.history_button, self.commit_button, self.denoise_button)
+        for i, button in enumerate(buttons):
+            button.grid(row=0, column=i, sticky='ew', padx=(0, 4) if i < len(buttons) - 1 else 0)
             toolbar.columnconfigure(i, weight=1)
         self.history_panel=ttk.Frame(toolbar)
-        self.history_panel.grid(row=1,column=0,columnspan=2,sticky='ew',pady=(5,0))
+        self.history_panel.grid(row=1,column=0,columnspan=4,sticky='ew',pady=(5,0))
         self.history_panel.grid_remove();self.history_expanded=False
         self.editor_toolbar = toolbar
         header = self.root.winfo_children()[0]
@@ -131,11 +167,51 @@ class EditorMixin:
     def editor_shortcut(self, event, redo=False):
         return
 
+    def editor_sync_denoise_choices(self):
+        # AUDIT-P33: DCU NoiseCut only exists inside the original development path.
+        # Listing it while it cannot run made the option look broken. Hide it instead
+        # and say why, so every visible choice is actually selectable.
+        combo = getattr(self, 'denoise_combo', None)
+        if combo is None:return
+        from native_backend import LOOKS
+        state = self.editor_state or {}
+        filt = state.get('filter') or {}
+        native_ok = filt.get('brand') == 'pentax' and filt.get('look') in LOOKS
+        values = tuple(label for key, label in DENOISE_CHOICES.items()
+                       if key != 'native' or native_ok)
+        if tuple(combo['values']) != values:
+            combo['values'] = values
+        if not native_ok and self.denoise_model.get() == DENOISE_CHOICES['native']:
+            # The active choice just became unreachable; fall back to Off, not to AI,
+            # so nothing starts computing on its own.
+            self.denoise_model.set(DENOISE_CHOICES['off'])
+        if getattr(self, 'native_noise_panel', None) is not None:
+            self.native_noise_panel.sync()
+
     def editor_sync_toolbar(self):
         if not getattr(self, 'editor_enabled', False):return
         enabled = self.editor_history is not None and not self.busy
-        for widget in (self.restore_button, self.history_button):
-            widget.configure(state='normal' if enabled else 'disabled')
+        widgets = (self.restore_button, self.history_button, getattr(self, 'commit_button', None))
+        for widget in widgets:
+            if widget is not None:
+                widget.configure(state='normal' if enabled else 'disabled')
+        if getattr(self, 'denoise_button', None) is not None:
+            choice = (self.editor_state or {}).get('denoise') or {}
+            kind = choice.get('kind')
+            ready = self.editor_history is not None and not self.busy and self.current_path is not None
+            # AUDIT-P31: DCU NoiseCut runs inside the original development pass, so it
+            # needs no start button at all. Showing a greyed '开始降噪' with no reason
+            # reads as broken; relabel it instead, and keep the button live only for AI.
+            if kind == 'native':
+                label = '原厂降噪随预览生效'
+                state = 'disabled'
+            elif kind == 'ai':
+                label = '开始降噪'
+                state = 'normal' if ready else 'disabled'
+            else:
+                label = '开始降噪'
+                state = 'disabled'
+            self.denoise_button.configure(text=label, state=state)
 
     def editor_open_photo(self, path):
         pending = deepcopy(self.editor_state) if self.editor_pending else None
@@ -216,9 +292,16 @@ class EditorMixin:
                         value=current['controls'].get(name,self.factory.get(look,{}).get('factory_defaults',{}).get(name))
                         if value is not None and variable.get()!=value:variable.set(value)
                 self.highlight(); self.update_brand_controls()
+            self.editor_sync_denoise_choices()
         finally:self.editor_loading = False
         if render and self.current_path and self.pending is None:self.pending=self.root.after(40,self.request_render)
-        if not self.editor_history_only and state['denoise']['kind'] == 'ai' and state['denoise']['amount']>0 and self.current_path and self.current_denoise() is None:
+        # AUDIT-P22: never auto-start. Only the explicit start request does.
+        request = getattr(self, '_denoise_request', None)
+        if (not self.editor_history_only and state['denoise']['kind'] == 'ai'
+                and state['denoise']['amount'] > 0 and self.current_path
+                and self.current_denoise() is None
+                and request == (str(self.current_path), state['denoise']['model'])):
+            self._denoise_request = None
             self.start_denoise()
         if self.editor_history_missing_denoise():self.status.set('此步骤的降噪结果未缓存，需重新计算')
 
@@ -272,16 +355,68 @@ class EditorMixin:
         from native_backend import LOOKS
         if selected=='native' and (state['filter']['brand']!='pentax' or state['filter']['look'] not in LOOKS):
             old=choice['kind'] if choice['kind']!='ai' else choice['model']
-            self.denoise_model.set(DENOISE_CHOICES[old]);self.status.set('选择宾得滤镜后可使用 DCU 原厂降噪。');return
+            self.denoise_model.set(DENOISE_CHOICES[old])
+            # AUDIT-P30: say exactly why. DCU NoiseCut only exists inside the original
+            # development path, so creative looks (CP_*/Mono*), CUBE LUTs and the
+            # RICOH brand never reach it. The old text implied any Pentax filter worked.
+            if state['filter']['brand']!='pentax':
+                hint='DCU 原厂降噪只在宾得原厂模式下可用；当前不是宾得品牌。'
+            elif state['filter']['look'] in CREATIVE_LOOKS:
+                hint='DCU 原厂降噪只在宾得原厂模式下可用；创意滤镜（CP_/Mono 等）走的是独立色彩公式，不经过原厂引擎。'
+            elif not state['filter']['look']:
+                hint='DCU 原厂降噪只在宾得原厂模式下可用；请先在左侧选择一个原厂模式。'
+            else:
+                hint='DCU 原厂降噪只在宾得原厂模式下可用；当前滤镜不经过原厂引擎。'
+            self.status.set(hint)
+            return
         choice['kind'] = selected if selected in ('off', 'native') else 'ai'
+        if selected=='native' and self.current_path is not None:
+            # AUDIT-P35: a JPEG/PNG/TIFF has no sensor parameters, so the original
+            # engine runs the RGB compatibility route with a K-1 parameter bank.
+            # That works, but it is not the same as developing real camera RAW, so
+            # say so instead of letting the result look unexplained.
+            from photo_formats import RAW_EXT
+            suffix = self.current_path.suffix.lower()
+            if suffix not in RAW_EXT:
+                self.status.set('当前文件是 ' + suffix.lstrip('.').upper()
+                                 + '，没有相机传感器参数；原厂降噪会以 RGB 兼容方式处理，'
+                                 '参数取自 K-1 银行，效果与真 RAW 不同。')
         if selected=='native':state['filter']['amount']=1.
         if choice['kind'] == 'ai':choice['model'] = selected
         choice['amount'] = float(self.denoise_amount.get())
+        # AUDIT-P22: picking a model only declares intent. Clear any previous
+        # explicit start so apply_editor_state() does not launch a long job
+        # the user never asked for.
+        self._denoise_request = None
         previous=self.editor_state['denoise']
         label='降噪调整' if (previous['kind'],previous['model'])==(choice['kind'],choice['model']) else '降噪 · '+DENOISE_CHOICES[selected]
         changed=self.editor_record(state,label,coalesce_key='denoise')
         if changed and choice['kind']!='ai' and previous_key is not None:self.photo_denoise_store.cancel(previous_key)
         if self.denoise_detail is not None:self.denoise_detail.set_source_mode('native' if selected == 'native' else 'input')
+
+    # ---------------------------------------------------------------------------
+    # LEGACY PATH  (AUDIT-20261111/03-ISSUES-BATCH3.md)
+    #
+    # Reachable only when App.editor_enabled is False. build_editor_toolbar()
+    # sets it to True inside App.__init__, so this path never runs after
+    # startup. It is kept as the reference implementation for rollback.
+    #
+    # Do NOT extend. If you change behaviour here, also confirm the editor path
+    # in editor_ui.py / editor_pipeline.py.
+    # ---------------------------------------------------------------------------
+
+    def editor_start_denoise(self):
+        """AUDIT-P22: the user's explicit request to run the selected AI model."""
+        if not self.ready or self.busy or not self.current_path:return
+        choice = (self.editor_state or {}).get('denoise') or {}
+        if choice.get('kind') != 'ai':
+            self.status.set('请先选择一个 AI 降噪模型。');return
+        if float(choice.get('amount') or 0) <= 0:
+            self.status.set('降噪强度为 0，请先把强度调到 1% 以上。');return
+        self._denoise_request = (str(self.current_path), choice['model'])
+        self.editor_history_only = False
+        self.start_denoise()
+        self.editor_sync_toolbar()
 
     def editor_undo(self):
         if self.editor_history is None or self.busy:return
@@ -333,24 +468,41 @@ class EditorMixin:
         self.group.set('全部');self.update_custom_controls();self.build_cards();self.preset_canvas.yview_moveto(0)
 
     def editor_signature(self):
-        from photo_edit import fingerprint
         state=self.editor_state;selected=state['filter']
         record=self.current_denoise() if state['denoise']['kind']=='ai' else None
-        stamp=fingerprint({'state':state,'input':str(record['key']) if record else None})
+        return EditorMixin._signature_from(state,record['record'] if record else None)
+
+    @staticmethod
+    def _signature_from(state,record):
+        from photo_edit import fingerprint
+        selected=state['filter']
+        stamp=fingerprint({'state':state,'input':(str(record.key),getattr(record,'run_id',id(record))) if record else None})
         return (selected['look'] or '',state['exposure'],tuple(sorted(selected['controls'].items())),selected['amount'],stamp)
 
     def editor_request_render(self):
         self.pending=None
         if not self.current_path or self.closed or self.busy:return
-        signature=self.editor_signature();self.requested=signature;self.request_revision+=1;self.preview_error=''
-        held=self.current_denoise() if self.editor_state['denoise']['kind']=='ai' else None
-        self._editor_requested=(signature,deepcopy(self.editor_state),held['record'] if held else None)
+        self.defer_background_preparation()
+        state=deepcopy(self.editor_state)
+        held=self.current_denoise() if state['denoise']['kind']=='ai' else None
+        record=held['record'] if held else None
+        signature=self._signature_from(state,record);self.requested=signature;self.request_revision+=1;self.preview_error=''
+        input_record=record if state['denoise']['kind']=='ai' and state['denoise']['amount']>0 else None
+        input_token=self.source_token((self.current_path,input_record,state['denoise']['amount']))
+        if input_token!=self._source_input_token:
+            self._source_input_token=input_token
+            self.before=self.after=None;self.detail_cache=None;self.full_cache=None
+            self.preview_data=None;self.reset_histogram()
+        self._editor_requested=(signature,state,record)
         if signature in self.native_cache:self.show_result(*self.native_cache[signature])
         else:
             self.preview_started=time.monotonic();self.preview_stage='正在更新，保留上一帧';self.draw()
         if self._editor_worker_token!=self.generation or self.worker_failed:
             self._editor_worker_token=self.generation;self.worker_failed=False
             self.pool.submit(self.load_editor_worker,self.current_path,self.generation,self.cache_evictions)
+        wake=getattr(self,'_editor_wake',None)
+        if wake is not None:
+            with wake:wake.notify_all()
 
     def editor_file_selected(self,path):
         from photo_denoise import identity_for
@@ -363,6 +515,7 @@ class EditorMixin:
         self.photo_started=time.monotonic();self.preview_times={};self.preview_started=0
         self.preset_photo_selected(path);self.reset_histogram()
         self.editor_open_photo(path)
+        self._source_input_token=self.source_token()
         self.build_cards();self.build_controls();self.update_brand_controls();self.export_changed()
         self.request_render();self.draw()
 
@@ -381,25 +534,39 @@ class EditorMixin:
                             if generation==token:completed.pop(old,None);failed.pop(old,None)
                     except queue.Empty:pass
                     request=self._editor_requested
-                    if self.busy or request is None:time.sleep(.025);continue
+                    if self.busy or request is None:
+                        _wait_wake(self,.25)
+                        continue
                     sig,state,record=request;revision=self.request_revision
                     needs_full=self.needs_full_detail()
                     interacting=time.monotonic()<getattr(self,'_editor_interacting_until',0.)
                     detail_ready=self.detail_cache is not None and self.detail_cache[:2]==(token,sig)
                     level=completed.get(sig,0)
-                    if interacting:
-                        if level>=1:time.sleep(.012);continue
+                    source_record=record if state['denoise']['kind']=='ai' and state['denoise']['amount']>0 else None
+                    input_token=self.source_token((path,source_record,state['denoise']['amount']))
+                    if level<1:
                         target=(480,360);display_level=1
+                    elif interacting:
+                        _wait_wake(self,.012)
+                        continue
                     elif level<2:
                         target=(960,720);display_level=2
                     elif needs_full and not detail_ready:
                         target=None;display_level=3
-                    else:time.sleep(.025);continue
+                    else:
+                        _wait_wake(self,.25)
+                        continue
                     full=target is None
-                    if failed.get(sig)==revision:time.sleep(.025);continue
+                    if failed.get(sig)==revision:
+                        _wait_wake(self,.05)
+                        continue
                     def cancelled():
                         current=self._editor_requested
-                        obsolete=(self.closed or token!=self.generation or self.busy or current is None or current[0][0]!=sig[0])
+                        current_record=current[2] if current is not None and current[1]['denoise']['kind']=='ai' and current[1]['denoise']['amount']>0 else None
+                        current_input=(self.source_token((path,current_record,current[1]['denoise']['amount']))
+                                       if current is not None else None)
+                        obsolete=(self.closed or token!=self.generation or self.busy or current is None
+                                  or current[0][0]!=sig[0] or current_input!=input_token)
                         # Let a small intermediate frame finish; restarting
                         # it for every pointer event would starve the display.
                         # A stale full-photo job must yield to current edits.
@@ -413,7 +580,8 @@ class EditorMixin:
                         if full and sig==self.requested:self.detail_cache=(token,sig,before,rgb,alpha)
                         before_image=preview(before,alpha);after_image=preview(rgb,alpha)
                         report=dict(report,_display_histogram=histogram(after_image),
-                                    _editor_display_level=display_level,_editor_interim=display_level==1)
+                                    _editor_display_level=display_level,_editor_interim=display_level==1,
+                                    _editor_input_token=input_token)
                         completed[sig]=display_level
                         if len(completed)>24:completed.pop(next(iter(completed)))
                         self.events.put(('native_result',(token,sig,(before_image,after_image,report))))
@@ -446,7 +614,7 @@ class EditorMixin:
         held=self.current_denoise();records={self.photo_settings_key():held['record']} if held else {}
         self.busy=True;self.cancel_export.clear();self.export_cancelled=False;self.progress['value']=0
         self.video_run.configure(state='disabled');self.update_brand_controls()
-        args=(tuple(self.files),Path(self.output.get()),states,FORMAT_CHOICES[self.format.get()],quality,bits,gpu_compute.status()['mode'],records)
+        args=(tuple(self.files),Path(self.output.get()),states,FORMAT_CHOICES[self.format.get()],quality,bits,'auto',records)
         self.export_thread=threading.Thread(target=self.editor_export_worker,args=args,daemon=True);self.export_thread.start()
 
     def editor_export_worker(self,files,folder,states,fmt,quality,bits,backend,records):

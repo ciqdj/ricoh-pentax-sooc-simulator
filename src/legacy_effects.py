@@ -3,11 +3,10 @@ from pathlib import Path
 import json
 import threading
 import numpy as np
-import tifffile
 from PIL import Image
 from engine import srgb_encode
 from process_photo import adjust_rgb
-from photo_formats import read_photo, ICC, encode_png, resolve_format, RASTER_EXT, RAW_EXT
+from photo_formats import read_photo, resolve_format, RASTER_EXT, RAW_EXT, capture_for_output, save_raster
 from filter_catalog import CREATIVE_LOOKS
 from native_backend import RenderCancelled
 
@@ -21,16 +20,13 @@ class CreativeSession:
             if cancelled and cancelled():raise RenderCancelled()
             if self.photo is None:
                 photo=read_photo(self.source)
-                a=photo.rgb;maximum=np.iinfo(a.dtype).max
-                base=np.empty(a.shape,np.uint16)
-                for row in range(0,len(a),128):
-                    if cancelled and cancelled():raise RenderCancelled()
-                    block=a[row:row+128].astype(np.float64)/maximum
-                    if photo.linear:block=srgb_encode(block)
-                    base[row:row+128]=np.floor(np.clip(block,0,1)*65535+.5).astype(np.uint16)
+                maximum=np.iinfo(photo.rgb.dtype).max
+                # AUDIT-PERF P-4: render() re-derives every pixel from photo.rgb,
+                # and no caller consumes this method's return value, so the
+                # previous full-image float64 -> RGB16 conversion was dead work.
                 self.alpha=photo.alpha.astype(np.float64)/maximum if photo.alpha is not None else None
-                self.photo=photo;self.base=base
-        return self.base,self.alpha
+                self.photo=photo
+        return self.photo.rgb,self.alpha
 
     def render(self,key,amount=1,exposure=0,cancelled=None,progress=None):
         if key not in CREATIVE_LOOKS:raise ValueError('未知创意滤镜')
@@ -100,16 +96,12 @@ def save(source,destination,key,exposure=0,jpeg_quality=98,bit_depth=16,controls
     if alpha is not None and not keep_alpha:rgb=np.rint(rgb.astype(np.float64)*alpha[...,None]+65535*(1-alpha[...,None])).astype(np.uint16)
     if bits==8:rgb=((rgb.astype(np.uint32)+128)//257).astype(np.uint8)
     if keep_alpha:rgb=np.concatenate([rgb,np.rint(alpha*(65535 if bits==16 else 255)).astype(rgb.dtype)[...,None]],axis=2)
+    exif,capture=capture_for_output(source,rgb.shape)
     destination.parent.mkdir(parents=True,exist_ok=True);created=False;sidecar_created=False
     try:
-        with destination.open('xb') as out:
-            created=True
-            if fmt=='tiff':tifffile.imwrite(out,rgb,photometric='rgb',compression='deflate',iccprofile=ICC,extrasamples='unassalpha' if keep_alpha else None,metadata=None,software=None)
-            elif fmt=='png':out.write(encode_png(rgb,b''))
-            elif fmt=='jpeg':Image.fromarray(rgb).save(out,'JPEG',quality=jpeg_quality,subsampling=0,icc_profile=ICC)
-            elif fmt=='webp':Image.fromarray(rgb).save(out,'WEBP',lossless=True,exact=True,icc_profile=ICC)
-            else:Image.fromarray(rgb).save(out,'BMP')
-        report.update({'output_format':fmt,'output_bits':bits,'alpha_retained':keep_alpha,'lossless_encoding':fmt!='jpeg'})
+        save_raster(destination,rgb,fmt,jpeg_quality,keep_alpha,exif);created=True
+        report.update({'output_format':fmt,'output_bits':bits,'alpha_retained':keep_alpha,
+                       'lossless_encoding':fmt!='jpeg','capture_metadata':capture})
         with sidecar.open('x',encoding='utf-8') as out:sidecar_created=True;json.dump(report,out,ensure_ascii=False,indent=2)
         return report
     except Exception:

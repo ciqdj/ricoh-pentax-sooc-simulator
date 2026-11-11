@@ -10,8 +10,6 @@ from app_paths import ROOT
 
 _lock=threading.RLock();_sessions={};_session_info={};_state={};_cache=None
 _disabled_adapters=set()
-_gpu_runtime_disabled=False
-_variant_timings={}
 DEFAULT_MODEL='dcu'
 MODELS={
     'dcu':(None,None,None,None),
@@ -23,6 +21,30 @@ TILING={'nafnet':(384,64,64),'restormer':(384,64,64)}
 LARGE_MODELS={}
 LARGE_TILING={}
 REFERENCE_TOLERANCE=1e-4
+
+
+class InvalidDenoiseOutput(RuntimeError):
+    pass
+
+
+def _validate_prediction(result,shape):
+    """Reject numerical failure before clipping; allow normal model overshoot.
+
+    Inputs are normalized to [0, 1]. The broad [-1, 2] envelope permits a
+    whole signal range of overshoot on either side. This is a numerical
+    corruption guard, not a colour correction or a denoising strength rule.
+    """
+    if result.shape!=shape or not np.isfinite(result).all():
+        raise InvalidDenoiseOutput('降噪输出无效：尺寸或数值异常')
+    low=float(result.min());high=float(result.max())
+    if low < -1. or high > 2.:
+        # AUDIT-P38: state the actual limitation instead of a raw numeric range.
+        # These models were trained on normally exposed sRGB frames; on photos whose
+        # average lightness is low they can diverge, and that is not a corrupt file.
+        raise InvalidDenoiseOutput(
+            f'降噪输出数值异常（范围 {low:.4g} ~ {high:.4g}）。'
+            'NAFNet / Restormer 只适用于明度较高的照片；'
+            '这张照片暗部占比过大，请改用 DCU 原厂降噪，或先提高曝光再降噪。')
 
 
 def runtime():
@@ -78,8 +100,7 @@ def _claim(cancelled,progress):
 
 
 def _mode(force_cpu=False):
-    import gpu_compute
-    return 'cpu' if force_cpu or os.environ.get('PHOTO_GPU_DISABLE')=='1' or gpu_compute.status()['mode']=='cpu' else 'auto'
+    return 'cpu' if force_cpu or os.environ.get('PHOTO_GPU_DISABLE')=='1' else 'auto'
 
 
 def _spec(model,variant='base'):
@@ -107,9 +128,17 @@ def _choose_variant(model,shape,mode,adapters):
     if max(shape[:2])<512 or b['processed_pixels']>a['processed_pixels']*.8:return 'base'
     if memory_available()<3*1024**3:return 'base'
     if mode!='cpu' and not any(large_tile_allowed(v,384) and not blocked(v,model,'large') for v in adapters):return 'base'
-    base_time=_variant_timings.get((model,mode,'base'));large_time=_variant_timings.get((model,mode,'large'))
-    if base_time and large_time and large_time*b['tiles']>=base_time*a['tiles']*.95:return 'base'
     return 'large'
+
+
+def _device_order(devices,mode):
+    from neural_devices import CPU_KEY,priority_order
+    if mode=='cpu':return [CPU_KEY]
+    return priority_order(devices)
+
+
+def _session_key(model,mode,variant,order):
+    return model,mode,variant,tuple(order)
 
 
 def _create(model,providers,variant='base'):
@@ -138,22 +167,25 @@ def _run(engine,feed):
     return engine.run(None,feed)[0]
 
 
-def session(model=DEFAULT_MODEL,force_cpu=False,cancelled=None,progress=None,shape=None,variant=None):
-    global _gpu_runtime_disabled
+def session(model=DEFAULT_MODEL,force_cpu=False,cancelled=None,progress=None,shape=None,variant=None,
+            skip_devices=()):
     if model not in MODELS:raise ValueError('不支持的降噪模型')
     mode='cpu' if model=='dcu' else _mode(force_cpu)
     with _lock:
         _check_cancel(cancelled)
-        from neural_devices import adapters as list_adapters,blocked,record_failure,large_tile_allowed,write_diagnostic,failure
+        from neural_devices import CPU_KEY,adapters as list_adapters,blocked,record_failure,large_tile_allowed,write_diagnostic,failure
         devices=[]
-        if model!='dcu' and mode!='cpu' and not _gpu_runtime_disabled:
+        if model!='dcu' and mode!='cpu':
             try:devices=list_adapters()
-            except OSError:devices=[]
-        variant=variant or (_choose_variant(model,shape,mode,devices) if model!='dcu' else 'base')
-        key=(model,mode) if variant=='base' else (model,mode,variant)
-        cpu_key=(model,'cpu') if variant=='base' else (model,'cpu',variant)
+            except (OSError,RuntimeError):devices=[]
+        order=_device_order(devices,mode) if model!='dcu' else [CPU_KEY]
+        rows={row['key']:row for row in devices}
+        selection_mode='auto' if order and order[0]!=CPU_KEY else 'cpu'
+        variant=variant or (_choose_variant(model,shape,selection_mode,devices) if model!='dcu' else 'base')
+        key=_session_key(model,mode,variant,order)
         # Model switching must not retain all large CPU/GPU workspaces.
-        expired=[k for k in _sessions if k[0]!=model or (k[2] if len(k)>2 else 'base')!=variant]
+        expired=[k for k in _sessions if len(k)!=4 or k[0]!=model or k[1]!=mode or
+                 k[2]!=variant or k[3]!=tuple(order)]
         if expired and progress:progress('正在释放上一个模型…')
         for old_key in expired:
             _sessions.pop(old_key,None);_session_info.pop(old_key,None)
@@ -161,7 +193,12 @@ def session(model=DEFAULT_MODEL,force_cpu=False,cancelled=None,progress=None,sha
             _state.clear();_state.update(model='dcu',backend='CPU · DCU',native_module_defaults=True)
             return None
         if key in _sessions:
-            _state.clear();_state.update(_session_info[key]);return _sessions[key]
+            cached_info=_session_info[key];adapter=cached_info.get('adapter')
+            if adapter and (adapter['key'] in skip_devices or adapter['key'] in _disabled_adapters
+                            or blocked(adapter,model,variant)):
+                _sessions.pop(key,None);_session_info.pop(key,None)
+            else:
+                _state.clear();_state.update(cached_info);return _sessions[key]
         filename,fixture,manifest,_=_spec(model,variant);root=ROOT/'denoise-data'
         name={'nafnet':'NAFNet','restormer':'Restormer'}[model]
         _state.clear();_state.update(model=model,backend='准备中',variant=variant,provider=None)
@@ -172,110 +209,81 @@ def session(model=DEFAULT_MODEL,force_cpu=False,cancelled=None,progress=None,sha
         _check_cancel(cancelled)
         with np.load(root/fixture,allow_pickle=False) as f:feed={'image':f['image']};reference=f['clean']
         _progress(progress,name+' · 准备运行环境…','loading_runtime')
-        runtime();_check_cancel(cancelled)
-        _progress(progress,name+' · 加载 CPU 模型…','loading_model')
-        try:cpu=_create(model,['CPUExecutionProvider'],variant)
-        except Exception as exc:
-            if variant=='large' and failure(exc)['kind']=='memory':
-                if progress:progress('较大分块内存不足，使用同一模型的标准分块…')
-                return session(model,force_cpu,cancelled,progress,shape,'base')
-            raise
-        _check_cancel(cancelled)
-        _progress(progress,name+' · 预热 CPU 模型…','validating_device')
-        _run(cpu,feed);_check_cancel(cancelled)
-        if progress:progress(name+' · 校验 CPU 精度…')
-        samples=[]
-        for _ in range(2):
-            _check_cancel(cancelled);start=time.perf_counter();result=_run(cpu,feed);samples.append(time.perf_counter()-start)
-        cpu_time=float(np.median(samples))
-        error=float(np.max(np.abs(result-reference)))
-        if not np.isfinite(result).all() or error>REFERENCE_TOLERANCE:raise RuntimeError('CPU 降噪模型自检失败')
-        tested=[{'device':'CPU','seconds':cpu_time,'timings':samples,'max_error':error,'valid':True}]
-        common={'model':model,'variant':variant,'tile_config':list(_tile_config(model,variant)),'tested':tested,
+        ort=runtime();_check_cancel(cancelled)
+        tested=[]
+        common={'model':model,'variant':variant,'tile_config':list(_tile_config(model,variant)),
                 'model_sha256':digest,'precision':'float32','phase':'validating_device','eta_seconds':None}
-        cpu_info=dict(common,backend='CPU',provider='CPUExecutionProvider',seconds_per_tile=cpu_time)
-        _state.clear();_state.update(cpu_info)
-        if _gpu_runtime_disabled:tested.append({'device':'GPU','available':False,'kind':'device','reason':'保留本进程此前设备故障保护，未自动解禁。'})
-        best=(cpu_time,cpu,'CPU',None)
-        if mode!='cpu' and not _gpu_runtime_disabled and 'DmlExecutionProvider' in runtime().get_available_providers():
-            if progress:progress(name+' · 检测可用显卡…')
-            seen=set()
-            for info in devices:
-                _check_cancel(cancelled)
-                ident=(info['name'],info['vendor'],info['dedicated'])
-                physical=info.get('luid',ident)
-                if physical in seen:continue
-                seen.add(physical)
-                unavailable=blocked(info,model,variant)
-                if ident in _disabled_adapters:unavailable={'kind':'device','reason':'保留此前设备故障保护，未自动解禁。'}
-                if variant=='large' and not large_tile_allowed(info,384):unavailable={'kind':'memory_budget','reason':'当前显存预算不足以安全使用较大分块。'}
-                if unavailable:
-                    tested.append({'device':info['name'],'device_id':info['id'],'available':False,**unavailable});continue
-                # Portable FP32 kernels and split dispatches avoid the known
-                # fused/metacommand driver fault; do not retry that unsafe path.
-                for portable in (True,):
-                    try:
-                        options={'device_id':str(info['id'])}
-                        if portable:options['disable_metacommands']='True'
-                        # Publish the exact risky configuration before entering
-                        # native code. An access violation cannot be caught here;
-                        # the parent needs this context to quarantine the profile.
-                        _state.update(provider='DmlExecutionProvider',adapter=dict(info),
-                                      backend=info['name'],model=model,variant=variant)
-                        _progress(progress,name+' · 加载 GPU 模型 · '+info['name'],'loading_model')
-                        gpu=_create(model,[('DmlExecutionProvider',options),'CPUExecutionProvider'],variant)
-                        if gpu.get_providers()[0]!='DmlExecutionProvider':
-                            tested.append({'device':info['name'],'device_id':info['id'],'available':False,'reason':'DirectML 未成功绑定该设备。'});break
-                        _check_cancel(cancelled)
-                        _progress(progress,name+' · 预热 GPU 模型 · '+info['name'],'validating_device')
-                        _run(gpu,feed);_check_cancel(cancelled)
-                        if progress:progress(name+' · 校验 GPU 精度 · '+info['name'])
-                        samples=[]
-                        for _ in range(2):
-                            _check_cancel(cancelled);start=time.perf_counter();result=_run(gpu,feed);samples.append(time.perf_counter()-start)
-                        elapsed=float(np.median(samples))
-                        error=float(np.max(np.abs(result-reference)));valid=bool(np.isfinite(result).all() and error<=REFERENCE_TOLERANCE)
-                        tested.append({'device':info['name'],'device_id':info['id'],'seconds':elapsed,'timings':samples,'max_error':error,'valid':valid,'portable_kernels':portable,
-                                       'reason':'精度通过，按当前同模型实测速度比较。' if valid else '结果未通过原 PyTorch 精度门槛。'})
-                        if valid:
-                            if elapsed<best[0]*.95:best=(elapsed,gpu,info['name'],info)
-                            break
-                    except Exception as exc:
-                        from native_backend import RenderCancelled
-                        if isinstance(exc,RenderCancelled):raise
-                        problem=record_failure(info,model,variant,exc)
-                        tested.append({'device':info['name'],'device_id':info['id'],'available':False,'portable_kernels':portable,**problem})
-                        # A driver/device exception is different from a finite
-                        # numeric mismatch: do not immediately retry a hung GPU.
-                        if problem['kind']=='device':
-                            _disabled_adapters.add(ident);_gpu_runtime_disabled=True
-                            best=(cpu_time,cpu,'CPU',None)
-                        break
-                if _gpu_runtime_disabled:break
+        selected=None
+        dml_available='DmlExecutionProvider' in ort.get_available_providers()
+        for device_key in order:
+            _check_cancel(cancelled)
+            if device_key==CPU_KEY:
+                _state.clear();_state.update(model=model,variant=variant,backend='CPU',provider='CPUExecutionProvider')
+                _progress(progress,name+' · 加载 CPU 模型…','loading_model')
+                try:cpu=_create(model,['CPUExecutionProvider'],variant)
+                except Exception as exc:
+                    if variant=='large' and failure(exc)['kind']=='memory':
+                        if progress:progress('较大分块内存不足，使用同一模型的标准分块…')
+                        return session(model,force_cpu,cancelled,progress,shape,'base',skip_devices)
+                    raise
+                _progress(progress,name+' · 校验 CPU 模型…','validating_device')
+                result=_run(cpu,feed);_check_cancel(cancelled)
+                error=float(np.max(np.abs(result-reference))) if result.shape==reference.shape else float('inf')
+                valid=bool(result.shape==reference.shape and np.isfinite(result).all() and error<=REFERENCE_TOLERANCE)
+                tested.append({'device':'CPU','provider':'CPUExecutionProvider','max_error':error,'valid':valid})
+                if not valid:raise RuntimeError('CPU 降噪模型自检失败')
+                selected=(cpu,'CPU',None,'CPUExecutionProvider')
+                break
+            info=rows.get(device_key)
+            if info is None:continue
+            if not dml_available:
+                tested.append({'device':info['name'],'device_id':info['id'],'available':False,
+                               'reason':'当前运行环境没有 DirectML 执行提供程序。'});continue
+            unavailable=blocked(info,model,variant)
+            if device_key in _disabled_adapters or device_key in skip_devices:
+                unavailable={'kind':'device','reason':'保留此前设备故障保护，未自动解禁。'}
+            if variant=='large' and not large_tile_allowed(info,384):
+                unavailable={'kind':'memory_budget','reason':'当前显存预算不足以安全使用较大分块。'}
+            if unavailable:
+                tested.append({'device':info['name'],'device_id':info['id'],'available':False,**unavailable});continue
+            options={'device_id':str(info['id']),'disable_metacommands':'True'}
+            _state.update(provider='DmlExecutionProvider',adapter=dict(info),
+                          backend=info['name'],model=model,variant=variant)
+            _progress(progress,name+' · 加载 GPU 模型 · '+info['name'],'loading_model')
+            try:
+                gpu=_create(model,[('DmlExecutionProvider',options),'CPUExecutionProvider'],variant)
+                if gpu.get_providers()[0]!='DmlExecutionProvider':
+                    tested.append({'device':info['name'],'device_id':info['id'],'available':False,
+                                   'reason':'DirectML 未成功绑定该设备。'});continue
+                _progress(progress,name+' · 校验 GPU 模型 · '+info['name'],'validating_device')
+                result=_run(gpu,feed);_check_cancel(cancelled)
+                error=float(np.max(np.abs(result-reference))) if result.shape==reference.shape else float('inf')
+                valid=bool(result.shape==reference.shape and np.isfinite(result).all() and error<=REFERENCE_TOLERANCE)
+                tested.append({'device':info['name'],'device_id':info['id'],'provider':'DmlExecutionProvider',
+                               'max_error':error,'valid':valid,
+                               'reason':'模型校验通过，按设备优先级选用。' if valid else '模型输出未通过精度校验。'})
+                if valid:
+                    selected=(gpu,info['name'],info,'DmlExecutionProvider')
+                    break
+            except Exception as exc:
+                from native_backend import RenderCancelled
+                if isinstance(exc,RenderCancelled):raise
+                problem=record_failure(info,model,variant,exc)
+                tested.append({'device':info['name'],'device_id':info['id'],**problem})
+                if problem['kind']=='device':_disabled_adapters.add(device_key)
+                if variant=='large' and problem['kind']=='memory':
+                    if progress:progress('较大分块内存不足，使用同一模型的标准分块…')
+                    return session(model,force_cpu,cancelled,progress,shape,'base',skip_devices)
+                continue
+        if selected is None:raise RuntimeError('没有可用的 AI 降噪设备；请检查设备顺序和模型运行环境。')
         _check_cancel(cancelled)
-        info=dict(common,backend=best[2],seconds_per_tile=best[0],adapter=best[3],
-                  provider='CPUExecutionProvider' if best[3] is None else 'DmlExecutionProvider',
-                  selection_reason='使用通过同模型 FP32 精度校验的最快实测设备；故障或预算不足的配置保留跳过原因。')
-        _variant_timings[(model,mode,variant)]=best[0]
-        _sessions[key]=best[1];_session_info[key]=info
-        _sessions.setdefault(cpu_key,cpu);_session_info.setdefault(cpu_key,cpu_info)
-        if variant=='large' and shape is not None:
-            baseline_time=_variant_timings.get((model,mode,'base'))
-            if baseline_time and best[0]*tile_plan(shape,model,'large')['tiles']>=baseline_time*tile_plan(shape,model)['tiles']*.95:
-                # Compare expected whole-image work with the already measured
-                # smaller profile, not isolated tile counts. Release large
-                # allocations before restoring the faster standard profile.
-                for old_key in [k for k in _sessions if len(k)>2 and k[2]=='large']:
-                    _sessions.pop(old_key,None);_session_info.pop(old_key,None)
-                cpu=None;gpu=None;best=None;result=None;feed=None;reference=None
-                _progress(progress,'较大分块实测没有加快，使用同一模型的标准分块…','selecting_device')
-                engine=session(model,force_cpu,cancelled,progress,shape,'base')
-                _state['tile_decision_reason']='较大分块的实测预计总耗时更长，已选择标准分块。'
-                write_diagnostic(_state)
-                return engine
+        engine,backend,adapter,provider=selected
+        info=dict(common,tested=tested,backend=backend,adapter=adapter,provider=provider,
+                  selection_reason='按设置中的设备顺序选择首个通过模型精度校验的设备。')
+        _sessions[key]=engine;_session_info[key]=info
         _state.clear();_state.update(info)
         write_diagnostic(info)
-        return best[1]
+        return engine
 
 
 def _reflect_indices(start,count,length):
@@ -300,9 +308,10 @@ def _content_key(rgb,cancelled=None):
     return (rgb.shape,rgb.dtype.str,digest.digest())
 
 
-def _infer(rgb,model,noise_level,cancelled,progress,force_cpu=False,variant=None):
+def _infer(rgb,model,noise_level,cancelled,progress,force_cpu=False,variant=None,skip_devices=()):
     _check_cancel(cancelled)
-    engine=session(model,force_cpu,cancelled,progress,shape=rgb.shape,variant=variant)
+    engine=session(model,force_cpu,cancelled,progress,shape=rgb.shape,variant=variant,
+                   skip_devices=skip_devices)
     if model=='dcu':
         from dcu_denoise import apply as dcu_apply
         return dcu_apply(rgb,cancelled,progress)
@@ -329,7 +338,7 @@ def _infer(rgb,model,noise_level,cancelled,progress,force_cpu=False,variant=None
             patch=rgb[yi[:,None],xi[None,:]]
             a=np.ascontiguousarray(patch.transpose(2,0,1)[None],dtype=np.float32)/maximum
             result=_run(engine,{'image':a})
-            if result.shape!=(1,3,tile,tile) or not np.isfinite(result).all():raise RuntimeError('降噪输出无效')
+            _validate_prediction(result,(1,3,tile,tile))
             hh=min(core,h-top);ww=min(core,w-left)
             prediction=result[0,:,margin:margin+hh,margin:margin+ww].transpose(1,2,0);local_weight=window[:hh,:ww]
             band[:hh,left:left+ww]+=prediction*local_weight[...,None];weight[:hh,left:left+ww]+=local_weight
@@ -356,14 +365,63 @@ def _infer(rgb,model,noise_level,cancelled,progress,force_cpu=False,variant=None
     return out
 
 
-def apply(rgb,amount=1,cancelled=None,progress=None,model=DEFAULT_MODEL,noise_level=15,variant=None):
+def _infer_with_recovery(rgb,model,noise_level,cancelled,progress,force_cpu,variant,skip_devices):
+    """Finish on the first usable device; each failed device is tried once.
+
+    Session creation already follows the saved order. Runtime failure uses
+    that same order, preserving the model, FP32 precision and pixel input.
+    CPU failure is terminal. A large-tile memory failure may retry base tiles
+    once before advancing to another device.
+    """
+    from native_backend import RenderCancelled
+    from neural_devices import failure,record_failure,write_diagnostic,adapter_key
+    skipped=set(skip_devices);fallbacks=[]
+    while True:
+        try:
+            clean=_infer(rgb,model,noise_level,cancelled,progress,force_cpu=force_cpu,
+                         variant=variant,skip_devices=skipped)
+            if fallbacks:
+                _state.update(fallback_reason=fallbacks[-1]['reason'],
+                              fallback_kind=fallbacks[-1]['kind'],fallbacks=fallbacks)
+                write_diagnostic(_state)
+            return clean
+        except RenderCancelled:raise
+        except Exception as exc:
+            info=dict(_state);adapter=info.get('adapter')
+            current_variant=info.get('variant','base')
+            problem=failure(exc)
+            if adapter:problem=record_failure(adapter,model,current_variant,exc)
+            retry_small=current_variant=='large' and problem['kind']=='memory'
+            if not retry_small and info.get('provider')!='DmlExecutionProvider':
+                write_diagnostic(dict(info,phase='failed',failure=problem))
+                raise
+            device_key=(adapter.get('key') or adapter_key(adapter)) if adapter else None
+            # Every loop either drops the large profile, skips a new device,
+            # or forces CPU. A misreported backend cannot cause an endless retry.
+            if not retry_small and device_key in skipped:raise
+            if not retry_small and device_key is None and force_cpu:raise
+            if device_key and problem['kind']=='device':_disabled_adapters.add(device_key)
+            if not retry_small and device_key:skipped.add(device_key)
+            for key in list(_sessions):
+                if key[0]==model:
+                    _sessions.pop(key,None);_session_info.pop(key,None)
+            exc.__traceback__=None
+            fallbacks.append(dict(problem,backend=info.get('backend','CPU')))
+            if progress:progress('较大分块内存不足，改用同一模型标准分块…' if retry_small
+                                 else '当前设备未能完成降噪，正在按设备顺序重试…')
+            variant='base' if retry_small else current_variant
+            if not retry_small and not device_key:force_cpu=True
+
+
+def apply(rgb,amount=1,cancelled=None,progress=None,model=DEFAULT_MODEL,noise_level=15,
+          variant=None,force_cpu=False,skip_devices=()):
     """Return original-size RGB8/16, with a cached read-only 100% result.
 
     Input is display sRGB. noise_level remains for old settings compatibility;
     these blind models have no manually invented noise-level input. amount only
     blends the completed output; no hardware or strength setting changes quality.
     """
-    global _cache,_gpu_runtime_disabled
+    global _cache
     from native_backend import RenderCancelled
     if model not in MODELS or not np.isfinite(noise_level) or not 1<=noise_level<=50:raise ValueError('降噪设置无效')
     if not np.isfinite(amount) or not 0<=amount<=1:raise ValueError('降噪强度无效')
@@ -372,45 +430,17 @@ def apply(rgb,amount=1,cancelled=None,progress=None,model=DEFAULT_MODEL,noise_le
     _check_cancel(cancelled)
     _progress(progress,'正在准备降噪输入…','preparing_input')
     with _claim(cancelled,progress):
-        _check_cancel(cancelled);mode='cpu' if model=='dcu' else _mode();key=_content_key(rgb,cancelled);cached=_cache
+        _check_cancel(cancelled);mode='cpu' if model=='dcu' else _mode(force_cpu);key=_content_key(rgb,cancelled);cached=_cache
         if cached is not None and cached[:4]==(key,model,0,mode):clean=cached[4]
         else:
             remote=model!='dcu' and os.environ.get('PHOTO_AI_WORKER')!='1'
-            try:
-                if remote:
-                    from neural_process import infer
-                    def receive_status(info):
-                        _state.clear();_state.update(info)
-                    clean,info=infer(rgb,model,mode,cancelled,progress,on_status=receive_status);_state.clear();_state.update(info)
-                else:clean=_infer(rgb,model,noise_level,cancelled,progress,variant=variant)
-            except RenderCancelled:raise
-            except Exception as exc:
-                # The isolated worker already performs the same-model CPU
-                # retry. Do not create a second model session inside the GUI.
-                if remote:raise
-                from neural_devices import failure,record_failure,write_diagnostic
-                problem=failure(exc);variant=_state.get('variant','base');adapter=_state.get('adapter')
-                if adapter:problem=record_failure(adapter,model,variant,exc)
-                if problem['kind']=='device':_gpu_runtime_disabled=True
-                retry_small=variant=='large' and problem['kind']=='memory'
-                if not retry_small and _state.get('provider')!='DmlExecutionProvider':raise
-                # Invalidate auto sessions before a whole-image CPU restart;
-                # subsequent photos must not revisit the same faulty adapter.
-                for failed_key in [k for k in _sessions if k[1]=='auto' or retry_small]:
-                    _sessions.pop(failed_key,None);_session_info.pop(failed_key,None)
-                # Release a failed inference frame before allocating its
-                # replacement; traceback locals can own GPU workspaces.
-                exc.__traceback__=None
-                if progress:progress('较大分块内存不足，改用同一模型标准分块…' if retry_small else 'GPU 配置不可用，正在准备同一模型的 CPU 处理…')
-                clean=_infer(rgb,model,noise_level,cancelled,progress,force_cpu=not retry_small,variant='base' if retry_small else variant)
-                _state.update(fallback_reason=problem['reason'],fallback_kind=problem['kind'])
-                selected_variant=_state.get('variant','base')
-                auto_key=(model,'auto') if selected_variant=='base' else (model,'auto',selected_variant)
-                selected_key=(model,'cpu') if selected_variant=='base' else (model,'cpu',selected_variant)
-                if not retry_small:
-                    _sessions[auto_key]=_sessions[selected_key]
-                    _session_info[auto_key]=dict(_state)
-                write_diagnostic(_state)
+            if remote:
+                from neural_process import infer
+                def receive_status(info):
+                    _state.clear();_state.update(info)
+                clean,info=infer(rgb,model,mode,cancelled,progress,on_status=receive_status);_state.clear();_state.update(info)
+            else:clean=_infer_with_recovery(rgb,model,noise_level,cancelled,progress,
+                                           force_cpu,variant,skip_devices)
             _check_cancel(cancelled);clean.flags.writeable=False;_cache=(key,model,0,mode,clean)
         _check_cancel(cancelled)
         if amount==1:

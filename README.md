@@ -10,11 +10,11 @@
 
 嫌自己的照片偏色、发灰、太寡淡，就试试宾得四季、反转片，或者换到理光 GR IV 的交叉处理。跨品牌输入适配、原厂参数调用和工作台代码都已开源，想研究宾得色彩的朋友可以接着往下拆。
 
-[下载 Windows 免安装单文件版](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.12/RICOH-PENTAX-SOOC-Simulator-3.5.12-Standalone.exe) · [发布说明](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/tag/v3.5.12) · [处理流程与代码入口](docs/PIPELINE.md) · [源码运行与打包](docs/BUILD.md) · [免责声明](DISCLAIMER.md)
+[下载 Windows 免安装单文件版](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.13/RICOH-PENTAX-SOOC-Simulator-3.5.13-Standalone.exe) · [发布说明](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/tag/v3.5.13) · [处理流程与代码入口](docs/PIPELINE.md) · [源码运行与打包](docs/BUILD.md) · [免责声明](DISCLAIMER.md)
 
 [宾得滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/PENTAX-Filters-3.5.11.zip) · [理光 GR IV 滤镜包](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/RICOH-GR-IV-Filters-3.5.11.zip) · [原厂拆解数据](https://github.com/xxhgkd/ricoh-pentax-sooc-simulator/releases/download/v3.5.11/SOOC-Recovered-Color-Data-3.5.11.zip) · [文件清单与导入方法](docs/FILTERS.md)
 
-3.5.12 免安装单文件版自带宾得运行文件，下载后双击即可使用宾得调色。顶部「语言 / Language」即时切换，程序会记住选择。发布页也提供调用本机 DCU 安装的版本。
+3.5.13 免安装单文件版自带宾得运行文件，下载后双击即可使用宾得调色。顶部「语言 / Language」即时切换，程序会记住选择。发布页也提供调用本机 DCU 安装的版本。
 
 ## 我们做了什么
 
