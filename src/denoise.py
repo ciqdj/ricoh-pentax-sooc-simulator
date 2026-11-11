@@ -36,15 +36,13 @@ def _validate_prediction(result,shape):
     """
     if result.shape!=shape or not np.isfinite(result).all():
         raise InvalidDenoiseOutput('降噪输出无效：尺寸或数值异常')
-    low=float(result.min());high=float(result.max())
-    if low < -1. or high > 2.:
-        # AUDIT-P38: state the actual limitation instead of a raw numeric range.
-        # These models were trained on normally exposed sRGB frames; on photos whose
-        # average lightness is low they can diverge, and that is not a corrupt file.
-        raise InvalidDenoiseOutput(
-            f'降噪输出数值异常（范围 {low:.4g} ~ {high:.4g}）。'
-            'NAFNet / Restormer 只适用于明度较高的照片；'
-            '这张照片暗部占比过大，请改用 DCU 原厂降噪，或先提高曝光再降噪。')
+    # AUDIT-P40: no value-range rejection. NAFNet and Restormer were trained on the
+    # SIDD smartphone set, so a full-size camera RAW can push a tile outside the
+    # training distribution and the model can emit a large value. That is a model
+    # limit, not a broken GPU: measured on the same CR2 the RTX 3060 and the Intel
+    # iGPU produced identical outliers, so rejecting the tile and disabling the
+    # adapter punished the hardware for a data problem. The caller clips to the
+    # signal range as it did in 3.5.12.
 
 
 def runtime():
