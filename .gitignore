@@ -23,3 +23,9 @@ src/rawpy_f/*.pyd
 *.RAF
 *.PEF
 *.DNG
+
+# Baidu cloud sync temporaries
+*.baiduyun.uploading.cfg
+
+# Our own PEF encoder is small enough to ship in the repository.
+!src/native/pefenc.dll
