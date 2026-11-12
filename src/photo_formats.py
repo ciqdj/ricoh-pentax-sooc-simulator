@@ -346,8 +346,14 @@ def read_photo(path,half_size=False):
                 raise RuntimeError('富士 RAW 解码组件版本不正确，请重新下载完整程序。')
             decoder=rawpy_f
         with decoder.imread(str(path)) as raw:
+            # AUDIT-P41: LibRaw normalises the frame brightness unless told not to, and
+            # turning that off left every non-Pentax RAW far darker than the camera's
+            # own rendering: a measured CR2 decoded at 16.7% mean and never exceeded
+            # 80% of full scale, so Bright and every other look came out underexposed.
+            # Pentax PEF bypasses this path entirely, which is why only other brands
+            # looked wrong.
             array=raw.postprocess(use_camera_wb=True,use_auto_wb=False,output_color=decoder.ColorSpace.sRGB,
-                output_bps=16,gamma=(1,1),no_auto_bright=True,half_size=half_size)
+                output_bps=16,gamma=(1,1),no_auto_bright=False,half_size=half_size)
         linear=True;profile=None;orientation=1
         notes.append('RAW developed by LibRaw with camera white balance, not DCU5 demosaicing. RAW originals are never rewritten.')
         if ext=='.raf':notes.append('RAF decoder: LibRaw 0.22.3 with original X-Trans fixes and OpenMP.')
