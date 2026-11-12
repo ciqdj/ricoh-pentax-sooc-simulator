@@ -243,12 +243,13 @@ class RenderSession:
                 return cached
             _check_cancel(cancelled)
             if progress:progress('解码外来 RAW')
-            frame,black,white,source_wb=pef_writer.bayer_from_raw(self.source)
+            frame,black,white,source_wb,source_xyz=pef_writer.bayer_from_raw(self.source)
             _check_cancel(cancelled)
             template=pef_writer.PefTemplate(skeleton)
             if progress:progress('适配原厂画幅')
             fitted=pef_writer.fit_to(frame,template.rows,template.columns,black)
-            normalised=pef_writer.normalise(fitted,black,white,source_wb,FOREIGN_TARGET_WB)
+            normalised=pef_writer.normalise(fitted,black,white,source_wb,FOREIGN_TARGET_WB,
+                source_xyz=source_xyz,target_xyz=pef_writer.PENTAX_XYZ)
             _check_cancel(cancelled)
             if progress:progress('封装原厂 RAW 容器')
             blob=template.encode(normalised,pef_writer._library())

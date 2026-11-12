@@ -130,7 +130,11 @@ def _library():
 
 
 def bayer_from_raw(path):
-    """Return (bayer, black, white, wb) at the frame's native resolution."""
+    """Return (bayer, black, white, wb, xyz) at the frame's native resolution.
+
+    xyz is the camera's own published matrix from sensor RGB to XYZ; it is part
+    of the file metadata, so every frame of that camera reports the same one.
+    """
     import rawpy
     with rawpy.imread(str(path)) as raw:
         sizes = raw.sizes
@@ -141,8 +145,9 @@ def bayer_from_raw(path):
         black = raw.black_level_per_channel[0]
         white = raw.white_level
         gains = np.array(raw.camera_whitebalance[:3], dtype=np.float64)
+        xyz = np.asarray(raw.rgb_xyz_matrix)[:3,:3].astype(np.float64).copy()
     gains = gains/gains[1]
-    return frame, black, white, gains
+    return frame, black, white, gains, xyz
 
 
 def fit_to(bayer, rows, columns, fill):
@@ -165,21 +170,62 @@ def fit_to(bayer, rows, columns, fill):
     return canvas
 
 
-def trim_for(source_wb, target_wb):
-    """Residual cast trim, scaled by how far the source balance sits from ours.
+# The engine develops the frame through its own sensor matrix, so a foreign frame
+# has to be pre-rotated into that sensor's response. The correction comes from the
+# two cameras' published matrices, not from any photograph:
+#     C = WB_owner^-1 . M_owner^-1 . M_source . WB_source
+# Only the diagonal is usable in the Bayer domain, where each site carries a
+# single channel. BLUE_ENGINE_TRIM absorbs the remaining difference between the
+# engine's blue handling and the published matrix; it is a property of the
+# engine, identical for every photograph, so it is a constant rather than a
+# per-image statistic.
+BLUE_ENGINE_TRIM = 1.030
 
-    The trim was measured on a Panasonic frame. Applying that fixed pair to a
-    sensor whose balance already sits close would push it past neutral, so the
-    correction is scaled by the distance in log gain and fades to unity when
-    the two balances nearly agree.
-    """
-    import math
-    distance = abs(math.log(source_wb[0]/target_wb[0])) + abs(math.log(source_wb[2]/target_wb[2]))
-    weight = min(distance/0.25, 1.0)
-    return 1.0 + (0.980-1.0)*weight, 1.0 + (1.085-1.0)*weight
+# Sensor RGB to XYZ, as published by the container's owner (PENTAX K-3 Mark III).
+# The engine develops every PEF through this response, so a foreign frame has to
+# be rotated onto it before encoding.
+PENTAX_XYZ = (
+    (0.9251, -0.3817, -0.1069),
+    (-0.4627, 1.2667, 0.2175),
+    (-0.0798, 0.1660, 0.5633),
+)
+PENTAX_WB = (2.4844, 1.0, 1.7734)
 
 
-def normalise(bayer, black, white, source_wb, target_wb, red=None, blue=None):
+def channel_gains(source_xyz, source_wb, target_xyz, target_wb):
+    """Per-channel gains that map a source sensor response onto the owner's."""
+    import numpy as np
+    source_xyz = np.asarray(source_xyz, dtype=np.float64)
+    target_xyz = np.asarray(target_xyz, dtype=np.float64)
+    source_wb = np.asarray(source_wb, dtype=np.float64)
+    target_wb = np.asarray(target_wb, dtype=np.float64)
+    try:
+        inverse = np.linalg.inv(target_xyz)
+    except np.linalg.LinAlgError:
+        inverse = np.linalg.pinv(target_xyz)
+    correction = (np.diag(1.0/target_wb) @ inverse @ source_xyz @ np.diag(source_wb))
+    gain = np.abs(np.diag(correction)).astype(np.float64)
+    if not np.all(np.isfinite(gain)) or gain[1] <= 0:
+        return 1.0, 1.0, 1.0
+    gain = gain/gain[1]
+    # A frame that already comes from the owner's own sensor needs no rotation,
+    # so the engine trim must not be applied to it either.
+    identical = (np.max(np.abs(source_xyz-target_xyz)) < 1e-6 and
+                 np.max(np.abs(source_wb-target_wb)) < 1e-6)
+    blue = float(gain[2]) if identical else float(gain[2])*BLUE_ENGINE_TRIM
+    return float(gain[0]), 1.0, blue
+
+
+def trim_for(source_wb, target_wb, source_xyz=None, target_xyz=None):
+    """Channel gains for a foreign sensor; falls back to unity when unknown."""
+    if source_xyz is None or target_xyz is None:
+        return 1.0, 1.0
+    red, _green, blue = channel_gains(source_xyz, source_wb, target_xyz, target_wb)
+    return red, blue
+
+
+def normalise(bayer, black, white, source_wb, target_wb, red=None, blue=None,
+              source_xyz=None, target_xyz=None):
     """Map a foreign sensor frame onto the scale and balance Pentax expects.
 
     The engine assumes the PEF maker's own black/white points and applies its
@@ -188,7 +234,7 @@ def normalise(bayer, black, white, source_wb, target_wb, red=None, blue=None):
     engine's colour matrix leaves behind.
     """
     if red is None or blue is None:
-        measured_red, measured_blue = trim_for(source_wb, target_wb)
+        measured_red, measured_blue = trim_for(source_wb, target_wb, source_xyz, target_xyz)
         red = measured_red if red is None else red
         blue = measured_blue if blue is None else blue
     frame = np.maximum(bayer.astype(np.float64)-black, 0.0)
