@@ -165,7 +165,21 @@ def fit_to(bayer, rows, columns, fill):
     return canvas
 
 
-def normalise(bayer, black, white, source_wb, target_wb, red=0.980, blue=1.085):
+def trim_for(source_wb, target_wb):
+    """Residual cast trim, scaled by how far the source balance sits from ours.
+
+    The trim was measured on a Panasonic frame. Applying that fixed pair to a
+    sensor whose balance already sits close would push it past neutral, so the
+    correction is scaled by the distance in log gain and fades to unity when
+    the two balances nearly agree.
+    """
+    import math
+    distance = abs(math.log(source_wb[0]/target_wb[0])) + abs(math.log(source_wb[2]/target_wb[2]))
+    weight = min(distance/0.25, 1.0)
+    return 1.0 + (0.980-1.0)*weight, 1.0 + (1.085-1.0)*weight
+
+
+def normalise(bayer, black, white, source_wb, target_wb, red=None, blue=None):
     """Map a foreign sensor frame onto the scale and balance Pentax expects.
 
     The engine assumes the PEF maker's own black/white points and applies its
@@ -173,6 +187,10 @@ def normalise(bayer, black, white, source_wb, target_wb, red=0.980, blue=1.085):
     balance is divided out first. red and blue trim the residual cast the
     engine's colour matrix leaves behind.
     """
+    if red is None or blue is None:
+        measured_red, measured_blue = trim_for(source_wb, target_wb)
+        red = measured_red if red is None else red
+        blue = measured_blue if blue is None else blue
     frame = np.maximum(bayer.astype(np.float64)-black, 0.0)
     frame = frame*((WHITE-BLACK)/max(white-black, 1)) + BLACK
     frame[0::2, 0::2] *= (source_wb[0]/target_wb[0])*red
