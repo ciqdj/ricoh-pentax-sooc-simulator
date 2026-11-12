@@ -210,7 +210,14 @@ class EditorSession:
                 if state['denoise']['kind']=='native':controls.update(state['denoise']['native'])
                 # Untouched PEF full-size retains its original native route.
                 # Edited or AI-denoised sources are explicitly RGB inputs.
-                native_pef=(maxsize is None and self.path.suffix.lower()=='.pef' and
+                # AUDIT-P43: the preview used to take the RGB route, which only runs
+                # the colour half of the original engine. Measured on one frame the
+                # RGB route sat at saturation 6.19 while the native route sat at
+                # 10.03, and it exaggerated Reversal and GOLD four to five times, so
+                # the preview disagreed with the export the user was judging. A
+                # native render costs about 2.5 s once the frame is decoded, which is
+                # an acceptable preview latency for matching the export exactly.
+                native_pef=(self.path.suffix.lower()=='.pef' and
                             state['denoise']['kind']!='ai' and
                             manual_state(state)==manual_state(default_state()))
                 if entry['native'] is not None and entry.get('native_pef')!=native_pef:
