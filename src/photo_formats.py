@@ -8,7 +8,14 @@ from PIL.TiffImagePlugin import IFDRational
 import rawpy, tifffile, imagecodecs
 from color_math import srgb_encode
 
-RAW_EXT={'.arw','.pef','.dng','.nef','.nrw','.cr2','.cr3','.crw','.raf','.rw2','.orf','.srw','.rwl','.3fr','.iiq','.kdc','.dcr','.mos','.mrw','.x3f'}
+# Every extension LibRaw can decode, so no camera is rejected at the file dialog.
+# Sony keeps .arw today but older bodies write .srf / .sr2; Hasselblad writes .3fr
+# on X/907X and .fff on the H series; Pentax pixel-shift writes .arq; Leica and
+# Panasonic share .raw / .rwl. Adding one here reaches the dialog, the folder
+# scan and the drop handler because all three filter on PHOTO_EXT.
+RAW_EXT={'.arw','.srf','.sr2','.pef','.dng','.nef','.nrw','.cr2','.cr3','.crw',
+         '.raf','.rw2','.orf','.srw','.rwl','.raw','.3fr','.fff','.arq','.iiq',
+         '.kdc','.dcr','.mos','.mrw','.x3f','.mef','.erf','.ia'}
 RASTER_EXT={'.jpg','.jpeg','.jpe','.jfif','.png','.tif','.tiff','.webp','.bmp'}
 PHOTO_EXT=RAW_EXT|RASTER_EXT
 SRGB=ImageCms.ImageCmsProfile(ImageCms.createProfile('sRGB'))
