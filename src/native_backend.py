@@ -219,13 +219,28 @@ class RenderSession:
         return self.rgb,self.alpha
 
     def _foreign_pef(self,progress,cancelled):
-        """Re-encode a non-Pentax RAW into the maker's raw container."""
+        """Return the source re-encoded once into the maker's raw container.
+
+        AUDIT-P44: the conversion is keyed on the source file and cached for the
+        whole machine, because it only depends on the decoded frame. Rebuilding it
+        per render cost two seconds on every look change while producing the same
+        bytes, and the look itself only needs the finished container.
+        """
         suffix=self.source.suffix.lower()
         if suffix not in RAW_EXT or suffix=='.pef':return None
         skeleton=ROOT/'native-data/pef-skeleton.bin'
         if not skeleton.is_file():return None
         try:
+            import hashlib
+            from app_paths import writable_dir
             import pef_writer
+            stat=self.source.stat()
+            tag=hashlib.sha256(f'{self.source.resolve()}|{stat.st_size}|{int(stat.st_mtime)}'.encode('utf-8')).hexdigest()[:32]
+            cache=writable_dir('foreign-pef')
+            cached=cache/(tag+'.pef')
+            if cached.is_file() and cached.stat().st_size>1024:
+                if progress:progress('复用已转换的原厂容器')
+                return cached
             _check_cancel(cancelled)
             if progress:progress('解码外来 RAW')
             frame,black,white,source_wb=pef_writer.bayer_from_raw(self.source)
@@ -237,9 +252,12 @@ class RenderSession:
             _check_cancel(cancelled)
             if progress:progress('封装原厂 RAW 容器')
             blob=template.encode(normalised,pef_writer._library())
-            out=self.work/'foreign-source.pef'
-            out.write_bytes(blob)
-            return out
+            pending=cached.with_name(cached.name+'.writing')
+            try:
+                pending.write_bytes(blob)
+                os.replace(pending,cached)
+            finally:pending.unlink(missing_ok=True)
+            return cached
         except Exception:
             return None
     def _input(self,look,progress,cancelled):
@@ -279,13 +297,30 @@ class RenderSession:
             native_input=self.work/(bank_id+'-foreign.pef')
             if pending_pef is not None:
                 if 'foreign' not in self.inputs:
-                    self._prepare_space(pending_pef.stat().st_size+len(bank)+65536)
-                    if progress:progress('准备原厂引擎输入')
-                    pending=native_input.with_name(native_input.name+'.writing')
-                    try:
-                        supplement_pef(pending_pef,pending,bank)
-                        os.replace(pending,native_input)
-                    finally:pending.unlink(missing_ok=True)
+                    # AUDIT-P44: the copied container carries the mode tables, so it
+                    # is as reusable as the frame it came from. Keeping it next to
+                    # the frame cache avoids copying tens of megabytes per look.
+                    source_stat=self.source.stat()
+                    cache_key=f'{pending_pef.stem}-{bank_id}-{source_stat.st_size}-{int(source_stat.st_mtime)}.pef'
+                    from app_paths import writable_dir
+                    canned=writable_dir('foreign-pef')/cache_key
+                    if canned.is_file() and canned.stat().st_size>1024:
+                        if progress:progress('复用已准备的原厂容器')
+                        native_input=canned
+                    else:
+                        self._prepare_space(pending_pef.stat().st_size+len(bank)+65536)
+                        if progress:progress('准备原厂引擎输入')
+                        staged=native_input.with_name(native_input.name+'.writing')
+                        try:
+                            supplement_pef(pending_pef,staged,bank)
+                            os.replace(staged,native_input)
+                        finally:staged.unlink(missing_ok=True)
+                        try:
+                            import shutil
+                            shutil.copyfile(native_input,canned.with_name(canned.name+'.writing'))
+                            os.replace(canned.with_name(canned.name+'.writing'),canned)
+                        except Exception:
+                            canned.with_name(canned.name+'.writing').unlink(missing_ok=True)
                     self.inputs['foreign']=native_input
                 route='native_pef_foreign';notes=list(self.notes)
                 notes.append('Foreign RAW re-encoded into the maker raw container; developed by the original engine.')
